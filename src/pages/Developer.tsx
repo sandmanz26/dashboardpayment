@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Ellipsis, ExternalLink, Link2, ListFilter, Play, Search, Terminal, X } from 'lucide-react';
+import { BookOpen, Ellipsis, ExternalLink, Link2, ListFilter, Play, Search, Terminal, X } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { Webhooks } from './Developers';
 import { events } from '../data/events';
@@ -65,9 +65,16 @@ function Guides({ go, openPostman }: { go: (t: TabKey) => void; openPostman: () 
             <h4>Make API calls</h4>
             <p>Use your account API credentials to make API calls.</p>
             <CodeBlock title="cURL · Get balance" code={curl(endpoints[0])} />
-            <a className="dv-link" href="#api-guide"><Link2 size={14} />API guide</a>
+            <a className="dv-link" href="/apidocs/get-payment"><Link2 size={14} />API reference</a>
           </div>
           <button className="dv-btn" onClick={openPostman}><Terminal size={14} />Try on Postman</button>
+        </div>
+        <div className="dv-row">
+          <div>
+            <h4>Browse the API reference</h4>
+            <p>Endpoints, parameters and responses. Start with how to get the status of a payment.</p>
+          </div>
+          <a className="dv-btn" href="/apidocs/get-payment"><BookOpen size={14} />Open API reference</a>
         </div>
         <div className="dv-row">
           <div>

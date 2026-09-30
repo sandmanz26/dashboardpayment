@@ -264,3 +264,5 @@ tr:hover .dv-copy.hover, .dv-copy.hover:focus-visible { opacity: 1; }
 .try-fail .badge-s { background: #fde0dd; color: #a4271d; }
 .try-fail p { margin: 8px 0 0; }
 .try-next-locked { font-size: 13px; color: var(--muted); }
+a.dv-btn { text-decoration: none; color: inherit; }
+a.dv-btn.primary { color: #fff; }
