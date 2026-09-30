@@ -6,6 +6,7 @@ import Transactions from './pages/Transactions';
 import Settings from './pages/Settings';
 import Disputes from './pages/Disputes';
 import Subscriptions from './pages/Subscriptions';
+import Developers from './pages/Developers';
 import Placeholder from './pages/Placeholder';
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="balance" element={<Balance />} />
         <Route path="transactions" element={<Transactions />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="settings/developers" element={<Developers />} />
         <Route path="dispute" element={<Disputes />} />
         <Route path="subscriptions" element={<Subscriptions />} />
         <Route path="*" element={<Placeholder />} />
