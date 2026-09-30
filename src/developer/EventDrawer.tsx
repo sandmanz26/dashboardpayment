@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { RotateCw, X } from 'lucide-react';
 import { eventAttempts, eventPayload } from '../data/events';
 import type { DevEvent } from '../data/events';
@@ -7,11 +7,13 @@ import { CodeBlock, CopyButton } from './ui';
 
 export default function EventDrawer({ event, onClose }: { event: DevEvent; onClose: () => void }) {
   const [msg, setMsg] = useState('');
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeRef.current(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, []);
   useEffect(() => setMsg(''), [event.id]);
   const attempts = eventAttempts(event);
 

@@ -35,13 +35,18 @@ export function Modal({ title, subtitle, onClose, children, width = 640 }: {
   title: string; subtitle?: string; onClose: () => void; children: ReactNode; width?: number;
 }) {
   const box = useRef<HTMLDivElement>(null);
+  // Keep the latest onClose in a ref so the effect below runs only on mount/unmount.
+  // (Depending on onClose directly re-ran it on every parent render and stole focus from inputs.)
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
-    box.current?.focus();
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    // Focus the dialog only if nothing inside it (e.g. an autoFocus input) already has focus.
+    if (!box.current?.contains(document.activeElement)) box.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeRef.current(); };
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('keydown', onKey); prev?.focus?.(); };
-  }, [onClose]);
+  }, []);
   return (
     <div className="dv-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="dv-modal" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} ref={box} style={{ maxWidth: width }}>
