@@ -8,12 +8,15 @@ import type { DevEvent } from '../data/events';
 import ApiKeysTab from '../developer/ApiKeysTab';
 import EventDrawer from '../developer/EventDrawer';
 import PostmanModal from '../developer/PostmanModal';
+import EndpointsPanel from '../developer/EndpointsPanel';
+import TryFlow from '../developer/TryFlow';
 import { curl, endpoints } from '../developer/postman';
 import { CodeBlock, CopyButton } from '../developer/ui';
 import '../developer/developer.css';
 
 const TABS = [
   { key: 'guides', label: 'Guides' },
+  { key: 'try', label: 'Try' },
   { key: 'api-keys', label: 'API keys' },
   { key: 'webhooks', label: 'Webhooks' },
   { key: 'events', label: 'Events' },
@@ -39,6 +42,14 @@ function Guides({ go, openPostman }: { go: (t: TabKey) => void; openPostman: () 
     <div className="dv-tab">
       <h2 className="dv-h1">Start developing with Xendit</h2>
       <p className="dv-muted">Guides and resources to get you started on developing with Xendit.</p>
+
+      <section className="dv-panel try-cta">
+        <div>
+          <h3>Try it: receive an invoice payment</h3>
+          <p className="dv-muted">Create an invoice, simulate the payment and watch the webhook arrive — then break your receiver on purpose to see retries and timeouts.</p>
+        </div>
+        <button className="dv-btn primary" onClick={() => go('try')}>Start guided flow</button>
+      </section>
 
       <section className="dv-panel">
         <header><h3>Things you can do</h3></header>
@@ -85,6 +96,8 @@ function WebhooksTab() {
         <input ref={ref} placeholder="Search products or events, e.g. “payout”  (press / to focus)" value={q} onChange={(e) => setQ(e.target.value)} />
         {q && <button aria-label="Clear" onClick={() => setQ('')}><X size={14} /></button>}
       </label>
+      <EndpointsPanel />
+      <h3 className="dv-sec">Per-event URLs <span className="dv-muted">· legacy</span></h3>
       <div className="dev-page flush"><Webhooks filter={q} /></div>
     </div>
   );
@@ -169,6 +182,7 @@ export default function Developer() {
       </PageHeader>
 
       {tab === 'guides' && <Guides go={go} openPostman={() => setPostman(true)} />}
+      {tab === 'try' && <TryFlow />}
       {tab === 'api-keys' && <ApiKeysTab />}
       {tab === 'webhooks' && <WebhooksTab />}
       {tab === 'events' && <EventsTab />}

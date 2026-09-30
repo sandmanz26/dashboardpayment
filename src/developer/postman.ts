@@ -110,10 +110,10 @@ const splitUrl = (path: string) => {
 };
 
 /** Postman Collection v2.1 */
-export function buildCollection() {
+export function collectionFor(list: Endpoint[], name = 'Xendit API – UIByte (test mode)') {
   return {
     info: {
-      name: 'Xendit API – UIByte (test mode)',
+      name,
       description: 'Sample requests for the Xendit API. Set the secret_key variable in the environment before sending.',
       schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
     },
@@ -121,7 +121,7 @@ export function buildCollection() {
       type: 'basic',
       basic: [{ key: 'username', value: '{{secret_key}}', type: 'string' }, { key: 'password', value: '', type: 'string' }],
     },
-    item: endpoints.map((e) => ({
+    item: list.map((e) => ({
       name: e.name,
       request: {
         method: e.method,
@@ -137,6 +137,8 @@ export function buildCollection() {
     })),
   };
 }
+
+export const buildCollection = () => collectionFor(endpoints);
 
 export function buildEnvironment() {
   return {
