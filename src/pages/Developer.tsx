@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Ellipsis, ExternalLink, Link2, ListFilter, Search, Terminal, X } from 'lucide-react';
+import { Ellipsis, ExternalLink, Link2, ListFilter, Play, Search, Terminal, X } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { Webhooks } from './Developers';
 import { events } from '../data/events';
@@ -68,6 +68,13 @@ function Guides({ go, openPostman }: { go: (t: TabKey) => void; openPostman: () 
             <a className="dv-link" href="#api-guide"><Link2 size={14} />API guide</a>
           </div>
           <button className="dv-btn" onClick={openPostman}><Terminal size={14} />Try on Postman</button>
+        </div>
+        <div className="dv-row">
+          <div>
+            <h4>Try the payment flow</h4>
+            <p>Create an invoice, simulate the payment and watch the webhook arrive. Break your receiver on purpose to see retries and timeouts.</p>
+          </div>
+          <button className="dv-btn" onClick={() => go('try')}><Play size={14} />Start guided flow</button>
         </div>
         <div className="dv-row">
           <div>
