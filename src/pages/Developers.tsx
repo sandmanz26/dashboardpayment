@@ -9,7 +9,7 @@ function TestBanner() {
   return <div className="test-banner">Test mode</div>;
 }
 
-function ApiKeys() {
+export function ApiKeys() {
   const [copied, setCopied] = useState(false);
   const copy = () => {
     try { navigator.clipboard?.writeText(PUBLIC_KEY); } catch { /* clipboard unavailable */ }
@@ -53,7 +53,7 @@ function ApiKeys() {
   );
 }
 
-function IpAllowlist() {
+export function IpAllowlist() {
   const [ips, setIps] = useState<string[]>([]);
   const [adding, setAdding] = useState(false);
   const [value, setValue] = useState('');
@@ -93,7 +93,7 @@ function IpAllowlist() {
   );
 }
 
-function Webhooks() {
+export function Webhooks() {
   const [retry, setRetry] = useState(true);
   const [saved, setSaved] = useState<string | null>(null);
   const [urls, setUrls] = useState<Record<string, string>>({});

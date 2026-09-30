@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Bell, Building2, ChevronRight, ChevronUp, CircleArrowDown, CircleArrowUp, CirclePlus, Home, Layers3,
+  Bell, Building2, Code, ChevronRight, ChevronUp, CircleArrowDown, CircleArrowUp, CirclePlus, Home, Layers3,
   Coins, ScrollText, RefreshCw, ShieldCheck, Webhook, Plug, Wallet, Users, Scale,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -37,7 +37,7 @@ const groups: Group[] = [
     ],
   },
   { title: 'Apps & Partners', items: [{ label: 'xenPlatform', to: '/xenplatform', icon: Users }] },
-  { title: 'Developers', items: [{ label: 'Webhook Logs', to: '/webhook-logs', icon: Webhook }] },
+  { title: 'Developers', items: [{ label: 'Developer', to: '/developer', icon: Code }, { label: 'Webhook Logs', to: '/webhook-logs', icon: Webhook }] },
   {
     title: 'Configuration',
     items: [

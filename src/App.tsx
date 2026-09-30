@@ -9,6 +9,7 @@ import Subscriptions from './pages/Subscriptions';
 import Developers from './pages/Developers';
 import DevEntry from './pages/DevEntry';
 import Secret from './pages/Secret';
+import Developer from './pages/Developer';
 import Placeholder from './pages/Placeholder';
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="transactions" element={<Transactions />} />
         <Route path="settings" element={<Settings />} />
         <Route path="settings/developers" element={<Developers />} />
+        <Route path="developer" element={<Developer />} />
         <Route path="secret" element={<Secret />} />
         <Route path="dev" element={<DevEntry />} />
         <Route path="dispute" element={<Disputes />} />
