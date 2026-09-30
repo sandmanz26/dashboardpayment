@@ -13,7 +13,7 @@ export default function DevEntry() {
     <>
       <PageHeader title="Dev Mode is off" />
       <p className="muted" style={{ marginTop: 32 }}>
-        Dev Mode is disabled. Turn it on in <Link to="/settings" style={{ color: 'var(--blue)' }}>Settings</Link> to leave and review comments.
+        Dev Mode is disabled. Turn it on at <Link to="/secret" style={{ color: 'var(--blue)' }}>/secret</Link> to leave and review comments.
       </p>
     </>
   );
