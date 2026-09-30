@@ -4,11 +4,14 @@ import { BrowserRouter } from 'react-router-dom';
 import '@fontsource-variable/inter';
 import './styles.css';
 import App from './App';
+import { DevModeProvider } from './dev/DevMode';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <DevModeProvider>
+        <App />
+      </DevModeProvider>
     </BrowserRouter>
   </React.StrictMode>,
 );
