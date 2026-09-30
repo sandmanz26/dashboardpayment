@@ -93,19 +93,29 @@ export function IpAllowlist() {
   );
 }
 
-export function Webhooks() {
+export function Webhooks({ filter = '' }: { filter?: string } = {}) {
   const [retry, setRetry] = useState(true);
-  const [saved, setSaved] = useState<string | null>(null);
+  const [results, setResults] = useState<Record<string, { state: 'testing' | 'ok' | 'error'; msg: string }>>({});
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [checks, setChecks] = useState<Record<string, boolean>>({
     'Also notify my application when a payment has been received after expiry': true,
   });
 
   const save = (k: string) => {
-    if (!urls[k]) return;
-    setSaved(k);
-    setTimeout(() => setSaved((s) => (s === k ? null : s)), 1500);
+    const url = (urls[k] ?? '').trim();
+    if (!/^https?:\/\/[^\s/]+\.[^\s/]+/.test(url)) {
+      setResults((r) => ({ ...r, [k]: { state: 'error', msg: 'Enter a valid URL starting with https://' } }));
+      return;
+    }
+    setResults((r) => ({ ...r, [k]: { state: 'testing', msg: 'Sending test event…' } }));
+    setTimeout(() => setResults((r) => ({ ...r, [k]: { state: 'ok', msg: `200 OK · ${90 + Math.round(Math.random() * 120)} ms` } })), 700);
   };
+  const q = filter.trim().toLowerCase();
+  const groups = q
+    ? webhookGroups
+        .map((g) => (g.title.toLowerCase().includes(q) ? g : { ...g, items: g.items.filter((i) => i.toLowerCase().includes(q)), checks: [] }))
+        .filter((g) => g.items.length > 0)
+    : webhookGroups;
 
   return (
     <section className="dev-card test">
@@ -143,8 +153,8 @@ export function Webhooks() {
           <colgroup><col style={{ width: '32%' }} /><col style={{ width: '32%' }} /><col style={{ width: '10%' }} /><col /></colgroup>
           <thead><tr><th>Product</th><th colSpan={3}>Webhook URL</th></tr></thead>
           <tbody>
-            {webhookGroups.map((g) => (
-              <GroupRows key={g.title} g={g} urls={urls} setUrls={setUrls} saved={saved} save={save} checks={checks} setChecks={setChecks} />
+            {groups.map((g) => (
+              <GroupRows key={g.title} g={g} urls={urls} setUrls={setUrls} results={results} save={save} checks={checks} setChecks={setChecks} />
             ))}
           </tbody>
         </table>
@@ -153,10 +163,10 @@ export function Webhooks() {
   );
 }
 
-function GroupRows({ g, urls, setUrls, saved, save, checks, setChecks }: {
+function GroupRows({ g, urls, setUrls, results, save, checks, setChecks }: {
   g: (typeof webhookGroups)[number];
   urls: Record<string, string>; setUrls: (u: Record<string, string>) => void;
-  saved: string | null; save: (k: string) => void;
+  results: Record<string, { state: 'testing' | 'ok' | 'error'; msg: string }>; save: (k: string) => void;
   checks: Record<string, boolean>; setChecks: (c: Record<string, boolean>) => void;
 }) {
   return (
@@ -170,11 +180,13 @@ function GroupRows({ g, urls, setUrls, saved, save, checks, setChecks }: {
             <td><span className="wh-name">{name}<Info size={11} strokeWidth={1.5} /></span></td>
             <td>
               <input className="wh-input" placeholder="http://example.com" disabled={disabled}
-                value={urls[key] ?? ''} onChange={(e) => setUrls({ ...urls, [key]: e.target.value })} />
+                value={urls[key] ?? ''} onChange={(e) => setUrls({ ...urls, [key]: e.target.value })}
+                onKeyDown={(e) => e.key === 'Enter' && save(key)} aria-invalid={results[key]?.state === 'error'} />
+              {results[key] && <div className={`wh-result ${results[key].state}`} role="status">{results[key].msg}</div>}
             </td>
             <td>
               <button className="btn primary xs wide" disabled={disabled} onClick={() => save(key)}>
-                {saved === key ? 'Saved' : 'Test and save'}
+                {results[key]?.state === 'testing' ? 'Testing…' : results[key]?.state === 'ok' ? 'Saved' : 'Test and save'}
               </button>
             </td>
             <td className="right"><ChevronDown size={14} strokeWidth={1.5} className="wh-chev" /></td>

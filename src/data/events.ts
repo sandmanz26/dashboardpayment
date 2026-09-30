@@ -17,3 +17,29 @@ const ids = [
 export const events: DevEvent[] = names.map((name, i) => ({
   id: ids[i], time: times[i], name, from: 'UIByte', status: name === 'payment.failed' ? 'Failed' : 'Succeeded',
 }));
+
+/** Webhook-style JSON body for an event, as a developer would receive it. */
+export function eventPayload(e: DevEvent) {
+  return {
+    id: e.id,
+    event: e.name,
+    created: '2026-09-30T04:17:05.000Z',
+    business_id: '65f0c1e2a4b7d900123abcde',
+    api_version: '2025-06-30',
+    data: {
+      status: e.status === 'Succeeded' ? 'SUCCEEDED' : 'FAILED',
+      currency: 'IDR',
+      amount: e.name.startsWith('topup') ? 1000000000 : 150000,
+      reference_id: `ref-${e.id.slice(0, 8)}`,
+    },
+  };
+}
+
+export function eventAttempts(e: DevEvent) {
+  return e.status === 'Succeeded'
+    ? [{ at: e.time, url: 'https://example.com/webhooks/xendit', code: 200, ms: 142 }]
+    : [
+        { at: e.time, url: 'https://example.com/webhooks/xendit', code: 500, ms: 3021 },
+        { at: '30 Sept 2026 at 11.16.40', url: 'https://example.com/webhooks/xendit', code: 500, ms: 2987 },
+      ];
+}
