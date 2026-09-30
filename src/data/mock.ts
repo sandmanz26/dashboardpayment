@@ -10,7 +10,7 @@ export interface Transaction {
   reference: string;
 }
 
-export const business = { name: 'UIByte', mode: 'Test Mode' };
+export const business = { name: 'UIByte', mode: 'Test Mode', user: 'Daniel Roy' };
 
 export const balances = [
   { code: 'IDR', name: 'Indonesian Rupiah', isDefault: true, available: 1_000_000_000 },

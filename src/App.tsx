@@ -3,6 +3,9 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import Balance from './pages/Balance';
 import Transactions from './pages/Transactions';
+import Settings from './pages/Settings';
+import Disputes from './pages/Disputes';
+import Subscriptions from './pages/Subscriptions';
 import Placeholder from './pages/Placeholder';
 
 export default function App() {
@@ -12,6 +15,9 @@ export default function App() {
         <Route index element={<Home />} />
         <Route path="balance" element={<Balance />} />
         <Route path="transactions" element={<Transactions />} />
+        <Route path="settings" element={<Settings />} />
+        <Route path="dispute" element={<Disputes />} />
+        <Route path="subscriptions" element={<Subscriptions />} />
         <Route path="*" element={<Placeholder />} />
       </Route>
     </Routes>

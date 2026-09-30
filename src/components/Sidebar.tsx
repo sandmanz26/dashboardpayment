@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Bell, Building2, ChevronRight, CircleArrowDown, CircleArrowUp, CirclePlus, Home, Layers3,
+  Bell, Building2, ChevronRight, ChevronUp, CircleArrowDown, CircleArrowUp, CirclePlus, Home, Layers3,
   Coins, ScrollText, RefreshCw, ShieldCheck, Webhook, Plug, Wallet, Users, Scale,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -31,8 +31,7 @@ const groups: Group[] = [
       {
         label: 'Send Payments', to: '/send-payments', icon: CircleArrowUp,
         children: [
-          { label: 'Single Payout', to: '/send-payments/single' },
-          { label: 'Batch Payout', to: '/send-payments/batch' },
+          { label: 'Payouts', to: '/send-payments/payouts' },
         ],
       },
     ],
@@ -60,7 +59,7 @@ function NavItem({ item }: { item: Item }) {
         <button className="nav-item" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
           <Icon size={17} strokeWidth={1.6} />
           <span>{item.label}</span>
-          <ChevronRight size={12} fill="currentColor" className={`chev ${open ? 'open' : ''}`} />
+          <svg width="8" height="8" viewBox="0 0 8 8" className={`chev ${open ? 'open' : ''}`} fill="currentColor"><path d="M1.5 0.5 7 4 1.5 7.5z" /></svg>
         </button>
         {open && item.children.map((c) => (
           <NavLink key={c.to} to={c.to} className={({ isActive }) => `nav-item sub ${isActive ? 'active' : ''}`}>
@@ -79,6 +78,18 @@ function NavItem({ item }: { item: Item }) {
 }
 
 export default function Sidebar() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const orgRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const close = (e: MouseEvent) => {
+      if (orgRef.current && !orgRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, []);
+
   return (
     <aside className="sidebar">
       <div className="brand"><Logo /><span>Xendit</span></div>
@@ -90,15 +101,33 @@ export default function Sidebar() {
           </div>
         ))}
       </nav>
-      <div className="org">
-        <Building2 size={24} strokeWidth={1.3} className="org-icon" />
-        <div className="org-meta">
-          <div className="org-name">{business.name}</div>
-          <span className="mode-badge">{business.mode}</span>
+      <div className="org-wrap" ref={orgRef}>
+        {menuOpen && (
+          <div className="org-menu" role="menu">
+            <button role="menuitem">Switch Business<ChevronRight size={18} strokeWidth={1.3} /></button>
+            <button role="menuitem">Add New Business</button>
+            <hr />
+            <button role="menuitem">Language<ChevronRight size={18} strokeWidth={1.3} /></button>
+            <button role="menuitem">Help<ChevronRight size={18} strokeWidth={1.3} /></button>
+            <button role="menuitem" onClick={() => { setMenuOpen(false); navigate('/settings'); }}>Settings</button>
+            <hr />
+            <button role="menuitem">Edit Profile</button>
+            <button role="menuitem" className="danger">Sign Out</button>
+          </div>
+        )}
+        <div className={`org ${menuOpen ? 'open' : ''}`} onClick={() => setMenuOpen((o) => !o)} role="button" tabIndex={0}>
+          <span className="org-logo"><Building2 size={24} strokeWidth={1.3} /></span>
+          <div className="org-meta">
+            <div className="org-name">{business.name}</div>
+            {menuOpen
+              ? <div className="org-user">{business.user}</div>
+              : <span className="mode-badge">{business.mode}</span>}
+          </div>
+          {menuOpen
+            ? <ChevronUp size={20} strokeWidth={1.5} />
+            : <button className="icon-btn" aria-label="Notifications" onClick={(e) => e.stopPropagation()}><Bell size={16} strokeWidth={1.5} /></button>}
         </div>
-        <button className="icon-btn" aria-label="Notifications"><Bell size={16} strokeWidth={1.5} /></button>
       </div>
-      
     </aside>
   );
 }

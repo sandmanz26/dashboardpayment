@@ -274,3 +274,68 @@ h1, h2, p { margin: 0; }
   box-shadow: 0 4px 16px rgba(15,98,254,.35);
 }
 .chat-fab:hover { background: #0a54e0; }
+
+/* ---------- sidebar: sub items + org menu ---------- */
+.nav-item.sub { padding-left: 35px; }
+.nav-item.sub::after { content: ''; position: absolute; left: 14px; top: 6px; bottom: 6px; width: 2px; background: var(--line-soft); }
+.org-wrap { position: relative; flex: none; padding: 0 12px; margin-bottom: 14px; }
+.org-wrap .org { height: 60px; margin: 0; padding: 0 12px; border-radius: 8px; cursor: pointer; }
+.org-wrap .org.open { background: #f1f2f4; }
+.org-logo { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 6px; flex: none; color: #3b4250; }
+.org.open .org-logo { background: #fff; }
+.org-user { font-size: 14px; color: var(--muted); line-height: 20px; }
+.org-menu {
+  position: absolute; left: 10px; right: 10px; bottom: 68px; background: #fff; border: 1px solid var(--line-soft); border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(16,24,40,.12); padding: 0; overflow: hidden; z-index: 20;
+}
+.org-menu button { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 41px; padding: 0 13px; font-size: 15px; text-align: left; }
+.org-menu button:hover { background: #f6f7f9; }
+.org-menu hr { margin: 0; border: 0; border-top: 1px solid var(--line-soft); }
+.org-menu .danger { color: #c9353f; }
+.org-menu svg { color: #4b5563; }
+
+/* ---------- generic cards / toolbars / empty ---------- */
+.page-header:has(> .btn) { display: flex; align-items: center; justify-content: space-between; padding: 34px 0; }
+.btn.lg { height: 45px; padding: 0 16px; }
+.status-cards.cols { margin-top: 45px; }
+.status-card { display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+.status-card.has-desc { height: 89px; }
+.sc-title { font-size: 18px; line-height: 24px; }
+.sc-desc { font-size: 17px; line-height: 24px; color: var(--muted); }
+.status-card.active .sc-desc { color: var(--text); }
+.toolbar.tight { margin-top: 35px; padding-top: 35px; align-items: center; }
+.link { color: var(--blue); margin-left: 4px; }
+.pill svg { flex: none; }
+.reset { color: #d92d3a; font-weight: 500; padding: 0 8px; align-self: center; }
+.pills { align-items: center; }
+.search-box {
+  display: flex; align-items: center; gap: 12px; width: 330px; height: 36px; padding: 0 14px; border: 1px solid var(--line-soft);
+  border-radius: 6px; background: #f8f9fb; color: var(--muted);
+}
+.search-box input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font-size: 14px; }
+.search-box input::placeholder { color: #8a909c; }
+.plain-search { width: 270px; height: 36px; padding: 0 16px; border: 1px solid var(--line-soft); border-radius: 6px; outline: 0; font-size: 14px; background: #fff; }
+.plain-search:focus { border-color: var(--blue); }
+.empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 52px; padding-bottom: 60px; }
+.empty-state h3 { margin: 16px 0 0; font-size: 22px; line-height: 30px; font-weight: 600; }
+.empty-state p { margin-top: 10px; font-size: 17px; color: var(--muted); }
+.toolbar.tight + .empty-state:not(:has(svg)) { padding-top: 200px; }
+
+/* ---------- settings ---------- */
+.settings-h { margin: 44px 0 25px; font-size: 20px; }
+.settings-h ~ .settings-h { margin-top: 36px; }
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.settings-card {
+  display: flex; align-items: center; gap: 22px; padding: 16px 22px; min-height: 80px; color: inherit; text-decoration: none;
+  border: 1px solid var(--line-soft); border-radius: 8px; box-shadow: 0 1px 2px rgba(16,24,40,.03);
+}
+.settings-card:hover { background: #fbfcfe; }
+.settings-icon { display: grid; place-items: center; width: 43px; height: 43px; flex: none; border-radius: 4px; background: #f6f7f9; color: #2b3240; }
+.settings-title { display: block; font-size: 16px; line-height: 24px; font-weight: 600; }
+.settings-desc { display: block; margin-top: 1px; font-size: 14px; line-height: 17px; color: var(--muted); }
+.version { margin: 320px 0 0; padding-bottom: 8px; color: var(--muted); font-size: 14px; }
+.pill { gap: 8px; padding: 0 13px; }
+.pills { gap: 12px; flex-wrap: nowrap; }
+.toolbar { gap: 16px; }
+.pills .pill, .reset { flex: none; }
+.search-box { width: 330px; flex: 0 1 330px; min-width: 200px; }
