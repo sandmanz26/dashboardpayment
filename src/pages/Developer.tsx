@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { BookOpen, Ellipsis, ExternalLink, Link2, ListFilter, Play, Search, Terminal, X } from 'lucide-react';
+import { BookOpen, History, Ellipsis, ExternalLink, Link2, ListFilter, Play, Search, Terminal, X } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { Webhooks } from './Developers';
 import { events } from '../data/events';
@@ -10,6 +10,8 @@ import EventDrawer from '../developer/EventDrawer';
 import PostmanModal from '../developer/PostmanModal';
 import EndpointsPanel from '../developer/EndpointsPanel';
 import TryFlow from '../developer/TryFlow';
+import TryCases, { CASES } from '../developer/TryCases';
+import Changelog from '../developer/Changelog';
 import { curl, endpoints } from '../developer/postman';
 import { CodeBlock, CopyButton } from '../developer/ui';
 import '../developer/developer.css';
@@ -35,6 +37,23 @@ function useSlashFocus(ref: React.RefObject<HTMLInputElement | null>) {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [ref]);
+}
+
+function TryTab() {
+  const [params, setParams] = useSearchParams();
+  const c = params.get('case') ?? 'invoice';
+  const choose = (id: string) => { const n = new URLSearchParams(params); n.set('tab', 'try'); if (id === 'invoice') n.delete('case'); else n.set('case', id); setParams(n); };
+  const items = [{ id: 'invoice', title: 'Receive an invoice payment' }, ...CASES];
+  return (
+    <>
+      <div className="dv-tab" style={{ paddingBottom: 0 }}>
+        <div className="try-picker" role="group" aria-label="Try case">
+          {items.map((i) => <button key={i.id} aria-pressed={c === i.id} onClick={() => choose(i.id)}>{i.title}</button>)}
+        </div>
+      </div>
+      {c === 'invoice' || !CASES.some((x) => x.id === c) ? <TryFlow /> : <TryCases key={c} caseId={c} />}
+    </>
+  );
 }
 
 function Guides({ go, openPostman }: { go: (t: TabKey) => void; openPostman: () => void }) {
@@ -181,6 +200,7 @@ function EventsTab() {
 export default function Developer() {
   const [params, setParams] = useSearchParams();
   const [postman, setPostman] = useState(false);
+  const [changelog, setChangelog] = useState(false);
   const raw = params.get('tab');
   const tab: TabKey = TABS.some((t) => t.key === raw) ? (raw as TabKey) : 'guides';
   const go = (t: TabKey) => setParams(t === 'guides' ? {} : { tab: t });
@@ -193,13 +213,15 @@ export default function Developer() {
             <button key={t.key} role="tab" aria-selected={tab === t.key} className={tab === t.key ? 'active' : ''} onClick={() => go(t.key)}>{t.label}</button>
           ))}
         </div>
+        <div className="dv-head-actions"><button className="dv-btn sm" onClick={() => setChangelog(true)}><History size={14} />Changelog</button></div>
       </PageHeader>
 
       {tab === 'guides' && <Guides go={go} openPostman={() => setPostman(true)} />}
-      {tab === 'try' && <TryFlow />}
+      {tab === 'try' && <TryTab />}
       {tab === 'api-keys' && <ApiKeysTab />}
       {tab === 'webhooks' && <WebhooksTab />}
       {tab === 'events' && <EventsTab />}
+      {changelog && <Changelog onClose={() => setChangelog(false)} />}
       {postman && <PostmanModal onClose={() => setPostman(false)} />}
       <div style={{ height: 48 }} />
     </>
