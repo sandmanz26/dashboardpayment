@@ -72,12 +72,40 @@ Measured in the browser on `/developer`: primary button 40px / 12px padding / ra
 with `#ededed` border. A sweep of all five tabs for the legacy `#0b5fff`, `#eef0f4` and `#6b7280`
 returns nothing. No console errors.
 
+## Typography
+
+63 rules in `developer.css` were rewritten onto the XenDS type scale. Each one was matched by
+snapping its size to the nearest step the scale has, then picking the style whose weight matched:
+
+| Size after snapping | weight 600 | weight 500 | weight 400 |
+| --- | --- | --- | --- |
+| 24px | `Heading/H2` | — | — |
+| 20px | `Heading/H3` | — | — |
+| 18px | `Heading/H4` | — | — |
+| 16px | `Subheading/lg` | `Label/lg/semi-bold` | `Body/lg` |
+| 14px | `Subheading/md` | `Label/md/semi-bold` | `Body/md` |
+| 12px | `Caption/bold` | `Label/sm/semi-bold` | `Caption/regular` |
+| 10px | `Label/xs/bold` | `Label/xs/semi-bold` | `Label/xs/regular` |
+
+Sizes the scale does not have — 11, 11.5, 12.5, 13, 13.5, 15, 15.5, 17, 19 — all disappeared.
+Each rule now sets size, line-height and weight from the same style, so the three can no longer
+drift apart. `.dv-tab`, `.dv-modal` and `.dv-drawer` set `Body/md` as the inherited default, so
+anything without its own size still lands on the scale.
+
+The shared `.dev-*` styles from `styles.css` (12.5px descriptions, 13px panel text, 11px notes,
+10.5px table groups) are snapped the same way, scoped to `.dv-tab`.
+
+### The one exception
+
+`.mono` keeps `font-size: .92em`. XenDS has no monospace type style, and monospace at the same
+nominal size reads larger than the surrounding text, so the optical correction stays. Measured,
+that produces 11.04px / 12.88px depending on context — the only off-scale sizes left in the area.
+
 ## Not done
 
-- Spacing and radius elsewhere in the Developer area still use literal px values. Only colour and
-  the button were synced; the panels, tables and drawers were not re-measured against XenDS
-  spacing tokens.
-- Typography is unchanged apart from the button. The XenDS type scale (`Body md` 14/20,
-  `Caption regular` 12/16, …) is available as CSS variables but not applied.
+- Spacing and radius elsewhere in the Developer area still use literal px values. Only colour,
+  typography and the button were synced; the panels, tables and drawers were not re-measured
+  against XenDS spacing tokens.
+- Letter-spacing is applied where a rule was rewritten, but not audited separately.
 - The Developer area has no XenDS counterpart for its code blocks, the flow diagram or the
   design-system checker — those stay as they are.
