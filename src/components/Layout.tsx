@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import ChatWidget from './ChatWidget';
 import CommentLayer from '../dev/CommentLayer';
 import DevWidget from '../dev/DevWidget';
+import DsTool from '../dstool/DsTool';
 
 export default function Layout() {
   const ref = useRef<HTMLElement>(null);
@@ -20,6 +21,7 @@ export default function Layout() {
       </main>
       <ChatWidget />
       <DevWidget placing={placing} setPlacing={setPlacing} />
+      <DsTool />
     </div>
   );
 }
