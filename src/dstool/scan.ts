@@ -14,26 +14,50 @@ export interface PropCheck {
 
 export interface Lookup {
   color: Map<string, string[]>;      // "r,g,b,a" -> token names
-  dimension: Map<string, string[]>;  // "16px"    -> token names
+  radius: Map<string, string[]>;     // "4px"     -> radius token names
+  spacing: Map<string, string[]>;    // "16px"    -> spacing token names
+  fontSize: Map<string, string[]>;   // "14px"    -> type-scale token names
   font: string[];                    // font-family token values
 }
 
+/** Which scale a dimension token belongs to, read from its name. */
+const scaleOf = (name: string): 'radius' | 'spacing' | 'fontSize' | 'other' => {
+  if (/radius|corner/i.test(name)) return 'radius';
+  if (/spacing|space|gap|padding|margin/i.test(name)) return 'spacing';
+  if (/-size$|font-?size/i.test(name)) return 'fontSize';
+  return 'other';
+};
+
 export function buildLookup(tokens: Token[]): Lookup {
   const color = new Map<string, string[]>();
-  const dimension = new Map<string, string[]>();
+  const radius = new Map<string, string[]>();
+  const spacing = new Map<string, string[]>();
+  const fontSize = new Map<string, string[]>();
   const font: string[] = [];
+  const add = (m: Map<string, string[]>, k: string, name: string) => m.set(k, [...(m.get(k) ?? []), name]);
+
   for (const t of tokens) {
     if (t.type === 'color') {
       const k = colorKey(t.value);
-      if (k) color.set(k, [...(color.get(k) ?? []), t.name]);
+      if (k) add(color, k, t.name);
     } else if (t.type === 'dimension') {
       const k = normPx(t.value);
-      if (k) dimension.set(k, [...(dimension.get(k) ?? []), t.name]);
+      if (!k) continue;
+      const scale = scaleOf(t.name);
+      if (scale === 'radius') add(radius, k, t.name);
+      else if (scale === 'spacing') add(spacing, k, t.name);
+      else if (scale === 'fontSize') add(fontSize, k, t.name);
+      else { add(radius, k, t.name); add(spacing, k, t.name); add(fontSize, k, t.name); }
     } else if (t.type === 'font') {
       font.push(t.value);
     }
   }
-  return { color, dimension, font };
+  // A role such as xds-color-text/default is the answer a designer expects; a primitive that
+  // happens to carry the same hex is not. Sort roles first so the inspector names the role.
+  const roleFirst = (names: string[]) =>
+    [...names].sort((a, b) => Number(/^xds-color|color-/.test(b)) - Number(/^xds-color|color-/.test(a)));
+  for (const [k, v] of color) color.set(k, roleFirst(v));
+  return { color, radius, spacing, fontSize, font };
 }
 
 /** px value rounded to 2 decimals, converting rem at the document root size. */
@@ -73,18 +97,20 @@ function colorCheck(group: PropCheck['group'], label: string, raw: string, looku
   return { group, label, value: raw, status: names ? 'token' : 'off', token: names?.[0] };
 }
 
-function dimensionCheck(group: PropCheck['group'], label: string, raw: string, lookup: Lookup): PropCheck | null {
+/** Each dimension is scored against its own scale — a font size must never match a spacing step. */
+function dimensionCheck(group: PropCheck['group'], label: string, raw: string, scale: Map<string, string[]>): PropCheck | null {
   const key = normPx(raw);
   if (!key || key === '0px') return null;
-  const names = lookup.dimension.get(key);
+  if (!scale.size) return { group, label, value: key, status: 'none' };
+  const names = scale.get(key);
   if (names) return { group, label, value: key, status: 'token', token: names[0] };
-  return { group, label, value: key, status: 'off', nearest: nearestDimension(key, lookup) };
+  return { group, label, value: key, status: 'off', nearest: nearestDimension(key, scale) };
 }
 
-function nearestDimension(value: string, lookup: Lookup): string | undefined {
+function nearestDimension(value: string, scale: Map<string, string[]>): string | undefined {
   const n = parseFloat(value);
   let best: { name: string; v: number } | null = null;
-  for (const [k, names] of lookup.dimension) {
+  for (const [k, names] of scale) {
     const d = Math.abs(parseFloat(k) - n);
     if (!best || d < Math.abs(best.v - n)) best = { name: `${names[0]} (${k})`, v: parseFloat(k) };
   }
@@ -104,14 +130,14 @@ export function checkElement(el: Element, lookup: Lookup): PropCheck[] {
   }
 
   if (hasOwnText(el)) {
-    push(dimensionCheck('typography', 'font-size', cs.fontSize, lookup));
+    push(dimensionCheck('typography', 'font-size', cs.fontSize, lookup.fontSize));
     const fam = cs.fontFamily;
     const famOk = lookup.font.some((f) => sameFamily(f, fam));
     out.push({ group: 'typography', label: 'family', value: fam.split(',')[0].replace(/["']/g, ''), status: lookup.font.length ? (famOk ? 'token' : 'off') : 'none' });
     out.push({ group: 'typography', label: 'weight / line-height', value: `${cs.fontWeight} / ${cs.lineHeight}`, status: 'none' });
   }
 
-  push(dimensionCheck('shape', 'radius', cs.borderTopLeftRadius, lookup));
+  push(dimensionCheck('shape', 'radius', cs.borderTopLeftRadius, lookup.radius));
   return out;
 }
 

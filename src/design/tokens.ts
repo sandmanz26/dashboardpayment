@@ -166,5 +166,7 @@ export function flatForChecker(): Record<string, string> {
   for (const g of semanticColors) for (const t of g.tokens) out[`${g.name}-${t.name}`.replace(/\./g, '-')] = t.value;
   for (const d of spacing) out[`xds-spacing-${d.name}`] = d.value;
   for (const d of radii) out[`xds-radius-${d.name}`] = d.value;
+  // Type sizes travel as their own scale so a font size is never scored against a spacing step.
+  for (const g of typography) for (const t of g.styles) out[`xds-type-${g.name}-${t.name}-size`.toLowerCase().replace(/\s+/g, '-')] = t.fontSize;
   return out;
 }

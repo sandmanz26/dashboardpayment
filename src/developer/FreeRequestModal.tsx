@@ -25,16 +25,16 @@ export default function FreeRequestModal({ base, onClose }: { base: Endpoint; on
         </label>
         {base.body !== undefined && (
           <label>Body (JSON)
-            <textarea className="dv-ta" rows={10} value={body} onChange={(e) => setBody(e.target.value)} spellCheck={false} aria-invalid={!parsed.ok} />
+            <textarea className="xds-textarea" rows={10} value={body} onChange={(e) => setBody(e.target.value)} spellCheck={false} aria-invalid={!parsed.ok} />
             {!parsed.ok && <span className="dv-err">This isn’t valid JSON. Fix the syntax to update the cURL below.</span>}
           </label>
         )}
         <CodeBlock title="cURL" code={curl(ep)} />
         <div className="dv-form-foot">
-          <button className="dv-btn" onClick={() => downloadJson('xendit-free-request.postman_collection.json', collectionFor([ep], `Xendit – ${base.name}`))}>
+          <button className="xds-button" onClick={() => downloadJson('xendit-free-request.postman_collection.json', collectionFor([ep], `Xendit – ${base.name}`))}>
             <Download size={14} />Download for Postman
           </button>
-          <button className="dv-btn primary" onClick={onClose}>Done</button>
+          <button className="xds-button primary" onClick={onClose}>Done</button>
         </div>
       </div>
     </Modal>

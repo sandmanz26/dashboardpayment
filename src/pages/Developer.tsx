@@ -46,7 +46,7 @@ function TryTab() {
   const items = [{ id: 'invoice', title: 'Receive an invoice payment' }, ...CASES];
   return (
     <>
-      <div className="dv-tab" style={{ paddingBottom: 0 }}>
+      <div className="dv-screen" style={{ paddingBottom: 0 }}>
         <div className="try-picker" role="group" aria-label="Try case">
           {items.map((i) => <button key={i.id} aria-pressed={c === i.id} onClick={() => choose(i.id)}>{i.title}</button>)}
         </div>
@@ -58,7 +58,7 @@ function TryTab() {
 
 function Guides({ go, openPostman }: { go: (t: TabKey) => void; openPostman: () => void }) {
   return (
-    <div className="dv-tab">
+    <div className="dv-screen">
       <h2 className="dv-h1">Start developing with Xendit</h2>
       <p className="dv-muted">Guides and resources to get you started on developing with Xendit.</p>
 
@@ -67,7 +67,7 @@ function Guides({ go, openPostman }: { go: (t: TabKey) => void; openPostman: () 
           <h3>Try it: receive an invoice payment</h3>
           <p className="dv-muted">Create an invoice, simulate the payment and watch the webhook arrive — then break your receiver on purpose to see retries and timeouts.</p>
         </div>
-        <button className="dv-btn primary" onClick={() => go('try')}>Start guided flow</button>
+        <button className="xds-button primary" onClick={() => go('try')}>Start guided flow</button>
       </section>
 
       <section className="dv-panel">
@@ -77,21 +77,21 @@ function Guides({ go, openPostman }: { go: (t: TabKey) => void; openPostman: () 
             <span className="dv-card-ic keys"><KeyRound size={18} /></span>
             <h4>Manage API keys</h4>
             <p className="dv-muted">Generate and manage your API keys.</p>
-            <button className="dv-btn primary" onClick={() => go('api-keys')}>Manage API keys</button>
+            <button className="xds-button primary" onClick={() => go('api-keys')}>Manage API keys</button>
           </article>
 
           <article className="dv-card">
             <span className="dv-card-ic docs"><BookOpen size={18} /></span>
             <h4>Browse the API reference</h4>
             <p className="dv-muted">Endpoints, parameters and responses. Start with how to get the status of a payment.</p>
-            <a className="dv-btn" href="/apidocs/get-payment"><BookOpen size={14} />Open API reference</a>
+            <a className="xds-button" href="/apidocs/get-payment"><BookOpen size={14} />Open API reference</a>
           </article>
 
           <article className="dv-card">
             <span className="dv-card-ic try"><Play size={18} /></span>
             <h4>Try the payment flow</h4>
             <p className="dv-muted">Create an invoice, simulate the payment and watch the webhook arrive. Break your receiver on purpose to see retries and timeouts.</p>
-            <button className="dv-btn" onClick={() => go('try')}><Play size={14} />Start guided flow</button>
+            <button className="xds-button" onClick={() => go('try')}><Play size={14} />Start guided flow</button>
           </article>
 
           <article className="dv-card">
@@ -99,7 +99,7 @@ function Guides({ go, openPostman }: { go: (t: TabKey) => void; openPostman: () 
             <h4>Configure Webhooks</h4>
             <p className="dv-muted">Subscribe to Xendit events and receive notifications.</p>
             <a className="dv-link" href="#webhook-guide"><Link2 size={14} />Webhook guide</a>
-            <button className="dv-btn" onClick={() => go('webhooks')}>Add Webhook</button>
+            <button className="xds-button" onClick={() => go('webhooks')}>Add Webhook</button>
           </article>
 
           <article className="dv-card span2">
@@ -108,7 +108,7 @@ function Guides({ go, openPostman }: { go: (t: TabKey) => void; openPostman: () 
             <p className="dv-muted">Use your account API credentials to make API calls.</p>
             <CodeBlock title="cURL · Get balance" code={curl(endpoints[0])} />
             <a className="dv-link" href="/apidocs/get-payment"><Link2 size={14} />API reference</a>
-            <button className="dv-btn" onClick={openPostman}><Terminal size={14} />Try on Postman</button>
+            <button className="xds-button" onClick={openPostman}><Terminal size={14} />Try on Postman</button>
           </article>
         </div>
       </section>
@@ -118,7 +118,7 @@ function Guides({ go, openPostman }: { go: (t: TabKey) => void; openPostman: () 
 
 function WebhooksTab() {
   return (
-    <div className="dv-tab">
+    <div className="dv-screen">
       <div className="dv-intro">
         <p>Webhooks send notifications and callbacks for asynchronous updates about events on the Xendit platform. <a className="dv-link inline" href="#webhook-guide">View webhook guide <ExternalLink size={13} /></a></p>
       </div>
@@ -145,7 +145,7 @@ function EventsTab() {
   const toggle = (id: string) => setSel((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   return (
-    <div className="dv-tab">
+    <div className="dv-screen">
       <div className="dv-filterbar">
         <button className={`dv-filter ${showFilters || status !== 'All' ? 'on' : ''}`} onClick={() => setShowFilters((s) => !s)} aria-expanded={showFilters}>
           <ListFilter size={16} />Filters{status !== 'All' && <i className="dot" />}
@@ -162,7 +162,7 @@ function EventsTab() {
           ))}
         </div>
       )}
-      <table className="dv-table ev">
+      <table className="xds-table ev">
         <thead>
           <tr>
             <th className="chk"><input type="checkbox" aria-label="Select all" checked={all} onChange={() => setSel(all ? new Set() : new Set(rows.map((r) => r.id)))} /></th>
@@ -176,7 +176,7 @@ function EventsTab() {
               <td>{e.time}</td>
               <td className="mono">{e.name}</td>
               <td>{e.from}</td>
-              <td><span className={`ev-badge ${e.status === 'Succeeded' ? 'ok' : 'bad'}`}>{e.status}</span></td>
+              <td><span className={`xds-tag ${e.status === 'Succeeded' ? 'ok' : 'bad'}`}>{e.status}</span></td>
               <td className="mono idcell"><span>{e.id}</span><CopyButton text={e.id} label="Copy event ID" className="hover" /></td>
               <td className="right"><button className="dv-icon" aria-label="Actions" onClick={(ev) => { ev.stopPropagation(); setOpen(e); }}><Ellipsis size={16} /></button></td>
             </tr>
@@ -205,7 +205,7 @@ export default function Developer() {
             <button key={t.key} role="tab" aria-selected={tab === t.key} className={tab === t.key ? 'active' : ''} onClick={() => go(t.key)}>{t.label}</button>
           ))}
         </div>
-        <div className="dv-head-actions"><button className="dv-btn sm" onClick={() => setChangelog(true)}><History size={14} />Changelog</button></div>
+        <div className="dv-head-actions"><button className="xds-button sm" onClick={() => setChangelog(true)}><History size={14} />Changelog</button></div>
       </PageHeader>
 
       {tab === 'guides' && <Guides go={go} openPostman={() => setPostman(true)} />}

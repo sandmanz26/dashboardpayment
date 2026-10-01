@@ -40,12 +40,12 @@ export default function ApiKeysTab() {
   const maskedPub = `${PUBLIC_KEY.slice(0, 26)}${'•'.repeat(18)}${PUBLIC_KEY.slice(-4)}`;
 
   return (
-    <div className="dv-tab">
+    <div className="dv-screen">
       <div className="dv-intro">
         <p>
           Secret keys authenticate server-side requests; the public key is safe to use in the browser. All keys below are <b>test mode</b> and only touch test data.
         </p>
-        <button className="dv-btn primary" onClick={() => setCreating(true)}><Plus size={14} />Generate secret key</button>
+        <button className="xds-button primary" onClick={() => setCreating(true)}><Plus size={14} />Generate secret key</button>
       </div>
 
       <div className="dv-strip">
@@ -62,7 +62,7 @@ export default function ApiKeysTab() {
             <p className="dv-muted">Generate a key to start calling the API. It is shown once — store it in a secrets manager.</p>
           </div>
         ) : (
-          <table className="dv-table">
+          <table className="xds-table">
             <thead><tr><th>Name</th><th>Key</th><th>Access</th><th>Created</th><th /></tr></thead>
             <tbody>
               {keys.map((k) => (
@@ -127,8 +127,8 @@ export default function ApiKeysTab() {
             </div>
 
             <div className="ak-foot">
-              <button type="button" className="dv-btn" onClick={() => setCreating(false)}>Cancel</button>
-              <button type="submit" className="dv-btn primary" disabled={!name.trim()}>Generate key</button>
+              <button type="button" className="xds-button" onClick={() => setCreating(false)}>Cancel</button>
+              <button type="submit" className="xds-button primary" disabled={!name.trim()}>Generate key</button>
             </div>
           </form>
         </Modal>
@@ -138,7 +138,7 @@ export default function ApiKeysTab() {
           <div className="dv-form">
             <div className="dv-warn"><TriangleAlert size={16} />Copy this key now. For your security it will not be shown again.</div>
             <div className="dv-keyrow"><code className="mono">{fresh}</code><CopyButton text={fresh} label="Copy" /></div>
-            <div className="dv-form-foot"><button className="dv-btn primary" onClick={() => setFresh(null)}>I&apos;ve stored it</button></div>
+            <div className="dv-form-foot"><button className="xds-button primary" onClick={() => setFresh(null)}>I&apos;ve stored it</button></div>
           </div>
         </Modal>
       )}

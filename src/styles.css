@@ -506,7 +506,7 @@ h1, h2, p { margin: 0; }
 .ev-table input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--xds-color-text-accent); }
 .ev-table .right { text-align: right; }
 .ev-id { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ev-badge { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 600; }
-.ev-badge.ok { background: var(--xds-color-background-success-weaker); border-color: var(--xds-color-border-success-default); color: var(--xds-color-text-success); }
-.ev-badge.bad { background: var(--xds-color-background-critical-weaker); border-color: var(--xds-color-border-critical-default); color: var(--xds-color-text-critical); }
+.xds-tag { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 600; }
+.xds-tag.ok { background: var(--xds-color-background-success-weaker); border-color: var(--xds-color-border-success-default); color: var(--xds-color-text-success); }
+.xds-tag.bad { background: var(--xds-color-background-critical-weaker); border-color: var(--xds-color-border-critical-default); color: var(--xds-color-text-critical); }
 .dots { color: var(--xds-color-text-accent); display: inline-grid; place-items: center; width: 28px; height: 28px; }

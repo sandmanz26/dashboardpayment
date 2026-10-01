@@ -67,14 +67,14 @@ export default function Changelog({ onClose }: { onClose: () => void }) {
 
   return (
     <>
-      <div className="dv-scrim" onClick={onClose} />
-      <aside className="dv-drawer" role="dialog" aria-label="API changelog">
+      <div className="xds-drawer-scrim" onClick={onClose} />
+      <aside className="xds-drawer" role="dialog" aria-label="API changelog">
         <header>
           <div>
             <h2 style={{ marginTop: 0 }}>API changelog</h2>
             <p className="dv-muted">Changes to the Xendit API, newest first. Versions are dated; pin one with the <code>Xendit-Version</code> header.</p>
           </div>
-          <button className="dv-x" onClick={onClose} aria-label="Close"><X size={18} /></button>
+          <button className="xds-icon-button" onClick={onClose} aria-label="Close"><X size={18} /></button>
         </header>
 
         <ol className="cl-list">

@@ -19,14 +19,14 @@ export default function EventDrawer({ event, onClose }: { event: DevEvent; onClo
 
   return (
     <>
-      <div className="dv-scrim" onClick={onClose} />
-      <aside className="dv-drawer" role="dialog" aria-label={`Event ${event.name}`}>
+      <div className="xds-drawer-scrim" onClick={onClose} />
+      <aside className="xds-drawer" role="dialog" aria-label={`Event ${event.name}`}>
         <header>
           <div>
-            <span className={`ev-badge ${event.status === 'Succeeded' ? 'ok' : 'bad'}`}>{event.status}</span>
+            <span className={`xds-tag ${event.status === 'Succeeded' ? 'ok' : 'bad'}`}>{event.status}</span>
             <h2 className="mono">{event.name}</h2>
           </div>
-          <button className="dv-x" onClick={onClose} aria-label="Close"><X size={18} /></button>
+          <button className="xds-icon-button" onClick={onClose} aria-label="Close"><X size={18} /></button>
         </header>
 
         <dl className="dv-meta">
@@ -50,8 +50,8 @@ export default function EventDrawer({ event, onClose }: { event: DevEvent; onClo
           ))}
         </ul>
 
-        <div className="dv-drawer-foot">
-          <button className="dv-btn primary" onClick={() => setMsg('Resend queued — check delivery attempts in a moment.')}><RotateCw size={14} />Resend webhook</button>
+        <div className="xds-drawer-foot">
+          <button className="xds-button primary" onClick={() => setMsg('Resend queued — check delivery attempts in a moment.')}><RotateCw size={14} />Resend webhook</button>
           {msg && <span className="dv-muted" role="status">{msg}</span>}
         </div>
       </aside>

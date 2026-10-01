@@ -126,8 +126,8 @@ export default function EndpointModal({ onSave, onClose }: { onSave: (e: SavedEn
           {test.state === 'sending' && 'Sending test event…'}
           {test.state === 'done' && <>Test event delivered · <b>200 OK</b> · {test.ms} ms <span className="dv-muted">(simulated)</span></>}
         </div>
-        <button className="dv-btn" onClick={sendTest} disabled={test.state === 'sending'}>Send test event</button>
-        <button className="dv-btn primary" onClick={save}>Save endpoint</button>
+        <button className="xds-button" onClick={sendTest} disabled={test.state === 'sending'}>Send test event</button>
+        <button className="xds-button primary" onClick={save}>Save endpoint</button>
       </footer>
     </Modal>
   );

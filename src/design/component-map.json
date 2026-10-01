@@ -604,12 +604,12 @@
     ]
   },
   "codeIndex": {
-    ".dv-btn": {
+    ".xds-button": {
       "component": "Button",
       "id": "483:1724",
       "file": "src/developer/developer.css"
     },
-    ".dv-x, .dv-copy, .icon-btn": {
+    ".xds-icon-button, .xds-icon-button-copy": {
       "component": "IconButton",
       "id": "505:1886",
       "file": null
@@ -624,7 +624,7 @@
       "id": "1332:5353",
       "file": null
     },
-    ".badge-s, .ev-badge, .dv-chip, .menu-tag": {
+    ".xds-tag, .xds-tag-plain, .menu-tag": {
       "component": "Tag",
       "id": "55:391",
       "file": null
@@ -634,7 +634,7 @@
       "id": "55:204",
       "file": null
     },
-    "input, .dv-input, .dv-ta": {
+    ".xds-textarea, .ak-input, .wh-input, input": {
       "component": "TextInput",
       "id": "3755:7179",
       "file": null
@@ -659,12 +659,12 @@
       "id": "3253:20681",
       "file": "src/components/PageHeader.tsx"
     },
-    ".dv-modal": {
+    ".xds-dialog": {
       "component": "Dialog",
       "id": "6193:5837",
       "file": "src/developer/ui.tsx"
     },
-    ".org-menu button, .dv-select option": {
+    ".org-menu button": {
       "component": "Dropdown.item",
       "id": "4235:18556",
       "file": null
@@ -699,7 +699,7 @@
       "id": "103:631",
       "file": null
     },
-    ".dv-table, .ev-table": {
+    ".xds-table, .dev-table": {
       "component": "Table",
       "id": "5479:32884",
       "file": "src/pages/Developer.tsx"

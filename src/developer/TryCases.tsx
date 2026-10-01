@@ -179,7 +179,7 @@ export const CASES: Case[] = [
 function CopyCurl({ ep }: { ep: Endpoint }) {
   const [done, setDone] = useState(false);
   return (
-    <button className="dv-btn sm" onClick={async () => { if (await copyText(curl(ep))) { setDone(true); setTimeout(() => setDone(false), 1400); } }}>
+    <button className="xds-button sm" onClick={async () => { if (await copyText(curl(ep))) { setDone(true); setTimeout(() => setDone(false), 1400); } }}>
       {done ? <Check size={14} /> : <Copy size={14} />}{done ? 'Copied' : 'Copy as cURL'}
     </button>
   );
@@ -235,7 +235,7 @@ export default function TryCases({ caseId }: { caseId: string }) {
   const locked = sel !== null && states[sel] === 'locked';
 
   return (
-    <div className="dv-tab">
+    <div className="dv-screen">
       <h2 className="dv-h1">{c.title}</h2>
       <p className="dv-muted">{c.blurb} <b>Test mode</b> — every value below is dummy data, and nothing is sent anywhere.</p>
 
@@ -254,7 +254,7 @@ export default function TryCases({ caseId }: { caseId: string }) {
 
       {sel !== null && (
         <section className="try-panel" aria-label="Step detail">
-          <button className="dv-x try-close" onClick={() => setSel(null)} aria-label="Close detail"><X size={16} /></button>
+          <button className="xds-icon-button try-close" onClick={() => setSel(null)} aria-label="Close detail"><X size={16} /></button>
 
           {locked && (
             <div className="try-locked"><b>Not reached.</b> The flow stopped before this step — {out ? `${out.label.toLowerCase()} ended it earlier.` : 'send the request first.'}</div>
@@ -266,14 +266,14 @@ export default function TryCases({ caseId }: { caseId: string }) {
               <div className="try-req">
                 <em className={`m ${c.method}`}>{c.method}</em>
                 <code>{c.external ? c.path : BASE_URL + c.path}</code>
-                <span className="dv-chip">{c.external ? 'Your endpoint · x-callback-token attached' : 'Basic auth · test key attached (xnd_development_••••)'}</span>
+                <span className="xds-tag-plain">{c.external ? 'Your endpoint · x-callback-token attached' : 'Basic auth · test key attached (xnd_development_••••)'}</span>
               </div>
-              <textarea className="dv-ta" rows={9} value={bodyText} onChange={(e) => setBodyText(e.target.value)} spellCheck={false}
+              <textarea className="xds-textarea" rows={9} value={bodyText} onChange={(e) => setBodyText(e.target.value)} spellCheck={false}
                 aria-label="Request body" aria-invalid={!!jsonError} disabled={!!out} />
               {jsonError && <div className="dv-err" role="alert">{jsonError}</div>}
 
               <div className="try-actions">
-                {!out && <button className="dv-btn primary" onClick={send}><Send size={14} />{c.action}</button>}
+                {!out && <button className="xds-button primary" onClick={send}><Send size={14} />{c.action}</button>}
                 {!out && (
                   <label className="try-mode">Simulate
                     <select value={mode} onChange={(e) => setMode(e.target.value)}>
@@ -281,10 +281,10 @@ export default function TryCases({ caseId }: { caseId: string }) {
                     </select>
                   </label>
                 )}
-                {out && <button className="dv-btn" onClick={reset}><RotateCcw size={14} />Start over</button>}
+                {out && <button className="xds-button" onClick={reset}><RotateCcw size={14} />Start over</button>}
                 {!c.external && <CopyCurl ep={endpoint} />}
-                {!c.external && <button className="dv-btn sm" onClick={() => setFree(endpoint)}><SquareTerminal size={14} />Open as free request</button>}
-                {c.docs && <a className="dv-btn sm" href={c.docs}><BookOpen size={14} />API reference</a>}
+                {!c.external && <button className="xds-button sm" onClick={() => setFree(endpoint)}><SquareTerminal size={14} />Open as free request</button>}
+                {c.docs && <a className="xds-button sm" href={c.docs}><BookOpen size={14} />API reference</a>}
               </div>
 
               {step.samples.slice(1).map((sm) => (
@@ -307,7 +307,7 @@ export default function TryCases({ caseId }: { caseId: string }) {
             <>
               <h3>{selected.label}</h3>
               <div className={selected.tone === 'ok' ? 'try-status completed' : 'try-fail'}>
-                <span className="badge-s">{selected.status} · {selected.tone === 'ok' ? 'Happy path' : 'Failure case'}</span>
+                <span className="xds-tag">{selected.status} · {selected.tone === 'ok' ? 'Happy path' : 'Failure case'}</span>
                 <p><b>What happened:</b> {selected.what}</p>
                 {selected.todo && <p><b>What to do:</b> {selected.todo}</p>}
               </div>
@@ -316,7 +316,7 @@ export default function TryCases({ caseId }: { caseId: string }) {
                 ? <CodeBlock title="Webhook you receive afterwards" code={pretty(selected.webhook)} />
                 : <p className="dv-muted">No webhook is sent for this outcome.</p>}
               {ran !== selected.id && <p className="dv-muted">This is the sample. Run the case from step 1 to see it as the outcome of your own request.</p>}
-              {ran === selected.id && <div className="try-actions"><button className="dv-btn" onClick={reset}><RotateCcw size={14} />Start over</button></div>}
+              {ran === selected.id && <div className="try-actions"><button className="xds-button" onClick={reset}><RotateCcw size={14} />Start over</button></div>}
             </>
           )}
 

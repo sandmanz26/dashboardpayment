@@ -10,7 +10,7 @@ export default function PostmanModal({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal title="Try on Postman" subtitle="Import a ready-made collection and send your first request in under a minute." onClose={onClose} width={720}>
-      <div className="dv-modal-body">
+      <div className="xds-dialog-body">
         <ol className="dv-steps">
           <li>
             <span className="n">1</span>
@@ -18,10 +18,10 @@ export default function PostmanModal({ onClose }: { onClose: () => void }) {
               <b>Download the collection and environment</b>
               <p>Four sample requests — balance, transactions, invoices and payouts — using <code>{'{{base_url}}'}</code> and <code>{'{{secret_key}}'}</code>.</p>
               <div className="row">
-                <button className="dv-btn" onClick={() => { downloadJson('xendit-api.postman_collection.json', buildCollection()); setStep((s) => ({ ...s, col: true })); }}>
+                <button className="xds-button" onClick={() => { downloadJson('xendit-api.postman_collection.json', buildCollection()); setStep((s) => ({ ...s, col: true })); }}>
                   <Download size={14} />Collection{step.col && ' ✓'}
                 </button>
-                <button className="dv-btn" onClick={() => { downloadJson('xendit-test.postman_environment.json', buildEnvironment()); setStep((s) => ({ ...s, env: true })); }}>
+                <button className="xds-button" onClick={() => { downloadJson('xendit-test.postman_environment.json', buildEnvironment()); setStep((s) => ({ ...s, env: true })); }}>
                   <Download size={14} />Environment{step.env && ' ✓'}
                 </button>
               </div>
@@ -47,7 +47,7 @@ export default function PostmanModal({ onClose }: { onClose: () => void }) {
         <div className="dv-try">
           <div className="dv-try-head">
             <h3>Or start from the terminal</h3>
-            <span className="dv-chip">Base URL <code>{BASE_URL}</code></span>
+            <span className="xds-tag-plain">Base URL <code>{BASE_URL}</code></span>
           </div>
           <div className="dv-seg" role="tablist">
             {endpoints.map((e) => (

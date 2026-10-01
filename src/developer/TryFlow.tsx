@@ -57,7 +57,7 @@ const validationError = (message: string): ApiError => ({
 function CopyCurl({ ep }: { ep: Endpoint }) {
   const [done, setDone] = useState(false);
   return (
-    <button className="dv-btn sm" onClick={async () => { if (await copyText(curl(ep))) { setDone(true); setTimeout(() => setDone(false), 1400); } }}>
+    <button className="xds-button sm" onClick={async () => { if (await copyText(curl(ep))) { setDone(true); setTimeout(() => setDone(false), 1400); } }}>
       {done ? <Check size={14} /> : <Copy size={14} />}{done ? 'Copied' : 'Copy as cURL'}
     </button>
   );
@@ -176,7 +176,7 @@ export default function TryFlow() {
   );
 
   return (
-    <div className="dv-tab">
+    <div className="dv-screen">
       <h2 className="dv-h1">Receive an invoice payment</h2>
       <p className="dv-muted">
         From invoice to webhook, and what happens when your endpoint fails. <b>Test mode</b> — everything is simulated in your browser with fictional data.
@@ -194,7 +194,7 @@ export default function TryFlow() {
 
       {selected !== null && (
         <section className="try-panel" aria-label="Step detail">
-          <button className="dv-x try-close" onClick={() => setSelected(null)} aria-label="Close detail"><X size={16} /></button>
+          <button className="xds-icon-button try-close" onClick={() => setSelected(null)} aria-label="Close detail"><X size={16} /></button>
 
           {locked && (
             <div className="try-locked">
@@ -206,7 +206,7 @@ export default function TryFlow() {
             <>
               <h3>Your receiver</h3>
               <p>Use this disposable URL as your notification URL. It is a stand-in; choose how it behaves when Xendit calls it.</p>
-              <div className="try-url"><code className="mono">{receiver}</code><button className="dv-copy" aria-label="Copy receiver URL" onClick={() => copyText(receiver)}><Copy size={14} /></button></div>
+              <div className="try-url"><code className="mono">{receiver}</code><button className="xds-icon-button-copy" aria-label="Copy receiver URL" onClick={() => copyText(receiver)}><Copy size={14} /></button></div>
               <fieldset className="try-radios" aria-label="Receiver behaviour">
                 <legend>Receiver behaviour</legend>
                 {(['ok', 'error', 'silent'] as Behaviour[]).map((b) => (
@@ -223,12 +223,12 @@ export default function TryFlow() {
           {!locked && panelKind === 'invoice' && (
             <>
               <h3>Create an invoice</h3>
-              <div className="try-req"><em className="m POST">POST</em><code>{BASE_URL}/v2/invoices</code><span className="dv-chip">Basic auth · test key attached (xnd_development_••••)</span></div>
-              <textarea className="dv-ta" rows={8} value={bodyText} onChange={(e) => setBodyText(e.target.value)} spellCheck={false}
+              <div className="try-req"><em className="m POST">POST</em><code>{BASE_URL}/v2/invoices</code><span className="xds-tag-plain">Basic auth · test key attached (xnd_development_••••)</span></div>
+              <textarea className="xds-textarea" rows={8} value={bodyText} onChange={(e) => setBodyText(e.target.value)} spellCheck={false}
                 aria-label="Request body" aria-invalid={!!localError || !!apiError} disabled={!!invoice} />
               {localError && <div className="dv-err" role="alert">{localError}</div>}
               <div className="try-actions">
-                {!invoice && <button className="dv-btn primary" onClick={send}><Send size={14} />Send request</button>}
+                {!invoice && <button className="xds-button primary" onClick={send}><Send size={14} />Send request</button>}
                 {!invoice && (
                   <label className="try-mode">Simulate
                     <select value={sendMode} onChange={(e) => setSendMode(e.target.value as SendMode)}>
@@ -237,13 +237,13 @@ export default function TryFlow() {
                   </label>
                 )}
                 <CopyCurl ep={invoiceEndpoint} />
-                <button className="dv-btn sm" onClick={() => setFree(invoiceEndpoint)}><SquareTerminal size={14} />Open as free request</button>
-                <a className="dv-btn sm" href="/apidocs/get-payment"><BookOpen size={14} />API reference</a>
+                <button className="xds-button sm" onClick={() => setFree(invoiceEndpoint)}><SquareTerminal size={14} />Open as free request</button>
+                <a className="xds-button sm" href="/apidocs/get-payment"><BookOpen size={14} />API reference</a>
               </div>
 
               {apiError && (
                 <div className="try-fail" role="alert">
-                  <span className="badge-s">{apiError.status} · {apiError.body.error_code}</span>
+                  <span className="xds-tag">{apiError.status} · {apiError.body.error_code}</span>
                   <p><b>What happened:</b> {apiError.what}</p>
                   <p><b>What to do:</b> {apiError.todo}</p>
                   <p className="try-next-locked">Step 3 stays locked until an invoice is created.</p>
@@ -261,7 +261,7 @@ export default function TryFlow() {
               <p>Pay the invoice as a customer would. Xendit then sends one webhook to your receiver.</p>
               {behaviourButtons}
               <div className="try-actions">
-                <button className="dv-btn primary" onClick={simulatePay} disabled={!!delivery}>Simulate payment</button>
+                <button className="xds-button primary" onClick={simulatePay} disabled={!!delivery}>Simulate payment</button>
               </div>
               <p className="try-assume"><b>Assumed:</b> this button stands in for paying the invoice in test mode. The real mechanism is not an API call shown here — confirm it with engineering.</p>
             </>
@@ -270,15 +270,15 @@ export default function TryFlow() {
           {!locked && panelKind === 'watch' && delivery && sum && webhookPayload && (
             <>
               <div className={`try-status ${sum.status.toLowerCase()}`} role="status">
-                <span className="badge-s">{sum.status}</span>
+                <span className="xds-tag">{sum.status}</span>
                 <p>{sum.note}</p>
                 {sum.nextAt != null && <p className="next">Next redelivery: <b>{fmtOffset(sum.nextAt)}</b> after the invoice request</p>}
               </div>
               {behaviourButtons}
               <div className="try-actions">
-                {sum.status === 'Pending' && <button className="dv-btn" onClick={skip}><FastForward size={14} />Skip to next retry</button>}
-                {sum.status !== 'Completed' && <button className="dv-btn primary" onClick={resend}><RotateCw size={14} />Resend now</button>}
-                <button className="dv-btn" onClick={reset}><RotateCcw size={14} />Start over</button>
+                {sum.status === 'Pending' && <button className="xds-button" onClick={skip}><FastForward size={14} />Skip to next retry</button>}
+                {sum.status !== 'Completed' && <button className="xds-button primary" onClick={resend}><RotateCw size={14} />Resend now</button>}
+                <button className="xds-button" onClick={reset}><RotateCcw size={14} />Start over</button>
               </div>
               {note && <p className="dv-muted" role="status">{note}</p>}
 
