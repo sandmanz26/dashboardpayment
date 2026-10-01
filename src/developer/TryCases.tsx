@@ -20,6 +20,8 @@ interface Case {
   id: string; title: string; blurb: string; method: 'POST'; path: string; docs?: string;
   /** Label of the button that runs the case, and whether the request goes to Xendit or to your own server. */
   action: string; external?: boolean;
+  /** Steps per row in the diagram. Longer flows wrap instead of shrinking. */
+  perRow?: number;
   request: Record<string, unknown>;
   steps: Step[]; outcomes: Outcome[];
 }
@@ -29,6 +31,90 @@ const NOW = '2026-09-30T04:17:05.000Z';
 const hook = (event: string, data: Record<string, unknown>) => ({ event, business_id: BIZ, created: NOW, data });
 
 export const CASES: Case[] = [
+  {
+    id: 'checkout', title: 'A customer pays in your shop', blurb: 'The whole round trip: your checkout calls Xendit, the customer pays, Xendit calls you back, and you mark the order paid.',
+    method: 'POST', path: '/v3/payment_requests', docs: '/apidocs/get-payment', action: 'Send request', perRow: 4,
+    request: {
+      reference_id: 'order-10482', type: 'PAY', country: 'ID', currency: 'IDR', request_amount: 249000,
+      channel_code: 'QRIS', channel_properties: { expires_at: '2026-09-30T05:17:05.000Z' },
+      customer_id: 'cust-9a3f21b0', metadata: { order_id: '10482', cart_items: 3 },
+    },
+    steps: [
+      {
+        id: 'order', label: 'Checkout starts', sub: 'POST /v3/payment_requests',
+        detail: 'Write the order to your own database first, as PENDING, then create the payment request with reference_id set to your order id. That link is what lets you find the order again when the webhook arrives — the webhook does not know anything about your schema. Send an Idempotency-key so a retried checkout click cannot create two payment requests for one order.',
+        samples: [
+          { title: 'Request · application/json', code: { reference_id: 'order-10482', type: 'PAY', country: 'ID', currency: 'IDR', request_amount: 249000, channel_code: 'QRIS', channel_properties: { expires_at: '2026-09-30T05:17:05.000Z' }, customer_id: 'cust-9a3f21b0', metadata: { order_id: '10482', cart_items: 3 } } },
+          { title: 'Headers', code: 'Authorization: Basic <base64 of xnd_development_•••:>\nIdempotency-key: order-10482\nContent-Type: application/json' },
+          { title: 'Your side · before the call', code: 'BEGIN;\nINSERT INTO orders (id, status, amount_idr)\nVALUES (10482, \'pending\', 249000);\nCOMMIT;\n\n-- Only now call Xendit. If the call fails you still have\n-- an order you can retry or expire; the reverse loses money.' },
+        ],
+      },
+      {
+        id: 'pay', label: 'Customer pays', sub: 'QR scanned in their app',
+        detail: 'The response is REQUIRES_ACTION, not paid. It carries the action you have to put in front of the customer — a QR string here, a redirect url for a card, an in-app approval for an e-wallet. Show it, then wait. Your order is still PENDING at this point and nothing about the response tells you whether money will arrive.',
+        samples: [
+          { title: 'Response · 200', code: { payment_request_id: 'pr-8c41d0a9', reference_id: 'order-10482', status: 'REQUIRES_ACTION', request_amount: 249000, currency: 'IDR', channel_code: 'QRIS', actions: [{ type: 'PRESENT_TO_CUSTOMER', descriptor: 'QR_STRING', value: '00020101021226650013ID.CO.QRIS...' }], created: NOW } },
+          { title: 'What not to do', code: '// WRONG — a 200 here means "request created", not "paid".\nif (res.status === 200) markOrderPaid(10482);\n\n// RIGHT — keep waiting. Only the webhook (or a GET on the\n// payment request) may move the order to paid.' },
+          { title: 'Fallback poll', code: 'GET ' + BASE_URL + '/v3/payment_requests/pr-8c41d0a9\n\n# Use this to recover a webhook you missed, or on a\n# "check payment" button. It is a fallback, not the flow.' },
+        ],
+      },
+      {
+        id: 'hook', label: 'Xendit calls you', sub: 'payment.succeeded',
+        detail: 'The moment the channel confirms, Xendit POSTs to the webhook url you registered under Developers → Webhooks. This is a call into your infrastructure from outside: it must be a public https url, it must answer within a few seconds, and it carries x-callback-token plus a webhook-id you will need in the next step.',
+        samples: [
+          { title: 'Request Xendit makes', code: 'POST https://shop.example.com/webhooks/xendit\nx-callback-token: 8f2b1c4d9e0a7f36b5c81d2e4a90f7c3\nwebhook-id: 66a1f0c2b7e4d8001c9e5a31-wh1\ncontent-type: application/json' },
+          { title: 'Body · payment.succeeded', code: hook('payment.succeeded', { payment_id: 'py-8c41d0b3', payment_request_id: 'pr-8c41d0a9', reference_id: 'order-10482', status: 'SUCCEEDED', request_amount: 249000, currency: 'IDR', channel_code: 'QRIS', paid_at: NOW }) },
+          { title: 'If you do not answer', code: '# Non-2xx or a timeout is a failed delivery, and Xendit retries\n# with a growing gap. Retries are the reason the next two steps\n# exist: the same event will reach you more than once.\n\nattempt 1  04:17:05   timeout\nattempt 2  04:22:05   500\nattempt 3  04:47:05   200  <- finally handled' },
+        ],
+      },
+      {
+        id: 'verify', label: 'You verify', sub: 'Token, then webhook-id',
+        detail: 'Two checks, in this order, before you touch the order. First compare x-callback-token with the token from your dashboard in constant time — anyone can POST to a public url. Then insert the webhook-id; a conflict means this is a retry of an event you already handled, so reply 200 and stop. Skipping the second check is how a shop ships one order twice.',
+        samples: [
+          { title: 'Node · express', code: 'app.post(\'/webhooks/xendit\', async (req, res) => {\n  const got = req.get(\'x-callback-token\') ?? \'\';\n  const want = process.env.XENDIT_CALLBACK_TOKEN;\n  if (got.length !== want.length ||\n      !crypto.timingSafeEqual(Buffer.from(got), Buffer.from(want))) {\n    return res.status(401).json({ error: \'invalid callback token\' });\n  }\n\n  const fresh = await claim(req.get(\'webhook-id\'));   // INSERT ... ON CONFLICT\n  if (!fresh) return res.status(200).json({ duplicate: true });\n\n  await handle(req.body);\n  res.status(200).json({ received: true });\n});' },
+          { title: 'SQL · the dedupe table', code: 'CREATE TABLE webhook_events (\n  webhook_id  text PRIMARY KEY,\n  event       text NOT NULL,\n  received_at timestamptz NOT NULL DEFAULT now()\n);\n\nINSERT INTO webhook_events (webhook_id, event)\nVALUES ($1, $2)\nON CONFLICT (webhook_id) DO NOTHING\nRETURNING webhook_id;   -- no row back = already seen' },
+        ],
+      },
+      {
+        id: 'fulfil', label: 'Order marked paid', sub: 'Then reply 2xx fast',
+        detail: 'Do the small, safe write inline — move the order to paid, in one transaction with the webhook-id row so a crash cannot record the event without the order. Everything slow goes on a queue: the receipt email, the stock decrement, the warehouse call. Xendit is waiting on this response, and a slow handler turns into a retry you now have to deduplicate.',
+        samples: [
+          { title: 'SQL · one transaction', code: 'BEGIN;\nINSERT INTO webhook_events (webhook_id, event) VALUES ($1, $2);\nUPDATE orders\n   SET status = \'paid\', paid_at = now(), payment_id = $3\n WHERE id = 10482 AND status = \'pending\';\nCOMMIT;\n\n-- The status guard makes the write idempotent even if the\n-- dedupe check somehow lets a second copy through.' },
+          { title: 'Queue the slow work', code: '// Inside the transaction: nothing that can hang.\n// After it commits:\nawait jobs.enqueue(\'send_receipt\', { orderId: 10482 });\nawait jobs.enqueue(\'decrement_stock\', { orderId: 10482 });\n\n// Reply 200 now. Xendit is holding a connection open.' },
+          { title: 'Out-of-order events', code: '// payment.succeeded and payment_request.expiry can race.\n// Compare the event timestamp with what you stored and\n// refuse to move a paid order back to expired.\nif (event.created < order.status_changed_at) return ok();' },
+        ],
+      },
+      {
+        id: 'settle', label: 'Money settles', sub: 'Balance and reconcile',
+        detail: 'The order is paid for the customer, but the money reaches your Xendit balance on the channel’s own schedule, net of fees. Reconcile daily against your own records rather than trusting either side alone: list by reference_id, compare with your orders table, and investigate anything paid on one side only.',
+        samples: [
+          { title: 'Check the balance', code: 'GET ' + BASE_URL + '/balance?account_type=CASH\n\n{ "balance": 10249000, "currency": "IDR", "account_type": "CASH" }' },
+          { title: 'Reconcile', code: '-- Paid in your shop, never seen from Xendit: a missed webhook.\nSELECT o.id FROM orders o\n  LEFT JOIN webhook_events w ON w.reference_id = o.id\n WHERE o.status = \'paid\' AND w.webhook_id IS NULL;\n\n-- Paid at Xendit, still pending with you: replay the webhook\n-- from Developers → Webhooks, or GET the payment request.' },
+        ],
+      },
+    ],
+    outcomes: [
+      { stage: 5, id: 'paid', label: 'Order ships', tone: 'ok', status: 200,
+        response: { payment_request_id: 'pr-8c41d0a9', reference_id: 'order-10482', status: 'REQUIRES_ACTION', request_amount: 249000, actions: [{ type: 'PRESENT_TO_CUSTOMER', descriptor: 'QR_STRING' }] },
+        what: 'The customer scanned the QR, Xendit called your endpoint once, your handler verified the token, claimed the webhook-id, marked order 10482 paid and replied 200. Settlement follows on the channel’s schedule.',
+        webhook: hook('payment.succeeded', { payment_id: 'py-8c41d0b3', payment_request_id: 'pr-8c41d0a9', reference_id: 'order-10482', status: 'SUCCEEDED', request_amount: 249000, currency: 'IDR', paid_at: NOW }) },
+      { stage: 1, id: 'declined', label: 'Payment declined', tone: 'bad', status: 200,
+        response: { payment_request_id: 'pr-8c41d0aa', reference_id: 'order-10482', status: 'REQUIRES_ACTION', request_amount: 249000 },
+        what: 'Your POST succeeded and the customer did try to pay, but the channel refused. Note that the 200 you got at checkout looks identical to the happy path — only the webhook tells the two apart.',
+        todo: 'Leave the order pending, show a retry, and create a new payment request with a new reference_id. Do not reuse order-10482 as the reference for the retry if you also need to tell the attempts apart.',
+        webhook: hook('payment.failed', { payment_id: 'py-8c41d0bb', payment_request_id: 'pr-8c41d0aa', reference_id: 'order-10482', status: 'FAILED', failure_code: 'INSUFFICIENT_BALANCE' }) },
+      { stage: 1, id: 'expired', label: 'Cart abandoned', tone: 'bad', status: 200,
+        response: { payment_request_id: 'pr-8c41d0ab', reference_id: 'order-10482', status: 'REQUIRES_ACTION', request_amount: 249000 },
+        what: 'The customer closed the tab and never paid, so the request expired at the expires_at you set. This is the most common ending in a real shop, and it still arrives as a webhook.',
+        todo: 'Expire the order, release the stock you reserved, and make sure your expiry job agrees with expires_at so the two cannot disagree.',
+        webhook: hook('payment_request.expiry', { payment_request_id: 'pr-8c41d0ab', reference_id: 'order-10482', status: 'EXPIRED', expired_at: NOW }) },
+      { stage: 4, id: 'retry', label: 'Your handler fails', tone: 'bad', status: 200,
+        response: { payment_request_id: 'pr-8c41d0ac', reference_id: 'order-10482', status: 'REQUIRES_ACTION', request_amount: 249000 },
+        what: 'The customer paid and Xendit called you, but your handler threw after the token check and returned 500. Xendit retried, so the same payment.succeeded reached you three times. With the webhook-id claim in place that is harmless; without it the shop ships three parcels.',
+        todo: 'Return 2xx as soon as the order is written and push the rest onto a queue. Keep the webhook-id unique constraint and the status guard on the UPDATE — those are what make a retry safe.',
+        webhook: hook('payment.succeeded', { payment_id: 'py-8c41d0bc', payment_request_id: 'pr-8c41d0ac', reference_id: 'order-10482', status: 'SUCCEEDED', request_amount: 249000, delivery_attempt: 3 }) },
+    ],
+  },
   {
     id: 'payout', title: 'Send a payout', blurb: 'Pay a bank account and see what happens when it succeeds or fails.',
     method: 'POST', path: '/v2/payouts', docs: '/apidocs/get-payment', action: 'Send request',
@@ -244,6 +330,7 @@ export default function TryCases({ caseId }: { caseId: string }) {
           steps={c.steps.map((s) => ({ id: `s-${s.id}`, label: s.label, sub: s.sub }))}
           outcomes={c.outcomes.map((o) => ({ id: `o-${o.id}`, label: o.label, tone: o.tone }))}
           states={states}
+          perRow={c.perRow}
           active={sel}
           onPick={(id) => setSel((cur) => (cur === id ? null : id))}
         />
