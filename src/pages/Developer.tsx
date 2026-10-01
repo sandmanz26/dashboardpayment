@@ -117,21 +117,13 @@ function Guides({ go, openPostman }: { go: (t: TabKey) => void; openPostman: () 
 }
 
 function WebhooksTab() {
-  const [q, setQ] = useState('');
-  const ref = useRef<HTMLInputElement>(null);
-  useSlashFocus(ref);
   return (
     <div className="dv-tab">
       <div className="dv-intro">
         <p>Webhooks send notifications and callbacks for asynchronous updates about events on the Xendit platform. <a className="dv-link inline" href="#webhook-guide">View webhook guide <ExternalLink size={13} /></a></p>
       </div>
-      <label className="dv-search wide">
-        <Search size={16} />
-        <input ref={ref} placeholder="Search products or events, e.g. “payout”  (press / to focus)" value={q} onChange={(e) => setQ(e.target.value)} />
-        {q && <button aria-label="Clear" onClick={() => setQ('')}><X size={14} /></button>}
-      </label>
       <EndpointsPanel />
-      <Webhooks filter={q} />
+      <Webhooks />
     </div>
   );
 }
