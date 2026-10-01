@@ -101,11 +101,38 @@ The shared `.dev-*` styles from `styles.css` (12.5px descriptions, 13px panel te
 nominal size reads larger than the surrounding text, so the optical correction stays. Measured,
 that produces 11.04px / 12.88px depending on context — the only off-scale sizes left in the area.
 
+## Spacing and radius
+
+Every `padding`, `margin`, `gap` and `border-radius` in `developer.css` now points at a XenDS step.
+171 lines changed. Values were snapped to the nearest step, and **ties round up** — 6px became 8px,
+10px became 12px, 14px became 16px — so nothing got tighter than the designer's own step.
+
+| Scale | Steps |
+| --- | --- |
+| Spacing | 2 (3xs), 4 (2xs), 8 (xs), 12 (sm), 16 (md), 24 (lg), 32 (xl), 40 (2xl), 48 (3xl), 56 (4xl), 64 (5xl), 72 (6xl) |
+| Radius | 0 (none), 4 (sm), 8 (md), 12 (lg), 999 (full) |
+
+Off-scale values that disappeared: spacing at 3, 6, 7, 9, 10, 14, 18, 20, 22, 26, 28, 34px;
+radius at 6, 9, 10, 14px. A sweep of computed `padding`, `gap` and `border-radius` across the
+Developer area and its modals now returns nothing off the scale.
+
+Two values were left deliberately, both commented in the file:
+
+- The drawer's `padding-bottom: 96px` — past the 72px top of the scale, and it exists so content
+  can scroll clear of the fixed footer.
+- The modal radius was 14px, which the scale does not have; it is now `radius/lg` (12px).
+
+## Letter-spacing
+
+The earlier typography pass did **not** carry tracking across — an error in the previous version of
+this note, which claimed it did. It has now been done properly: every rule that uses a XenDS type
+style also takes that style's `-tracking` value, so size, line-height, weight and tracking all come
+from one place. The hand-written `-.015em`, `-.01em`, `.02em` and `.03em` values are gone.
+
 ## Not done
 
-- Spacing and radius elsewhere in the Developer area still use literal px values. Only colour,
-  typography and the button were synced; the panels, tables and drawers were not re-measured
-  against XenDS spacing tokens.
-- Letter-spacing is applied where a rule was rewritten, but not audited separately.
+- `src/dstool/*` (the design-system checker) is deliberately excluded. It is tooling that inspects
+  the page, so it keeps its own dark palette and sizing.
+- The `.mono` exception above still applies.
 - The Developer area has no XenDS counterpart for its code blocks, the flow diagram or the
   design-system checker — those stay as they are.
