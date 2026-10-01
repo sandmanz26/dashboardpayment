@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import Logo from './Logo';
+import './sidebar.css';
 import { business } from '../data/mock';
 
 interface Item { label: string; to: string; icon: LucideIcon; children?: { label: string; to: string }[] }
@@ -57,7 +58,7 @@ function NavItem({ item }: { item: Item }) {
     return (
       <>
         <button className="nav-item" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-          <Icon size={17} strokeWidth={1.6} />
+          <Icon size={16} strokeWidth={1.6} />
           <span>{item.label}</span>
           <svg width="8" height="8" viewBox="0 0 8 8" className={`chev ${open ? 'open' : ''}`} fill="currentColor"><path d="M1.5 0.5 7 4 1.5 7.5z" /></svg>
         </button>
@@ -71,7 +72,7 @@ function NavItem({ item }: { item: Item }) {
   }
   return (
     <NavLink to={item.to} end={item.to === '/'} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-      <Icon size={17} strokeWidth={1.6} />
+      <Icon size={16} strokeWidth={1.6} />
       <span>{item.label}</span>
     </NavLink>
   );
@@ -92,7 +93,7 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <div className="brand"><Logo /><span>Xendit</span></div>
+      <div className="brand"><span className="brand-chip"><Logo /><span>Xendit</span></span></div>
       <nav className="nav">
         {groups.map((g, i) => (
           <div key={i} className="nav-group">
@@ -102,6 +103,7 @@ export default function Sidebar() {
         ))}
       </nav>
       <div className="org-wrap" ref={orgRef}>
+        <button className="notif-btn" type="button"><Bell size={16} strokeWidth={1.5} />Notification</button>
         {menuOpen && (
           <div className="org-menu" role="menu">
             <button role="menuitem">Switch Business<ChevronRight size={18} strokeWidth={1.3} /></button>
@@ -123,9 +125,7 @@ export default function Sidebar() {
               ? <div className="org-user">{business.user}</div>
               : <span className="mode-badge">{business.mode}</span>}
           </div>
-          {menuOpen
-            ? <ChevronUp size={20} strokeWidth={1.5} />
-            : <button className="icon-btn" aria-label="Notifications" onClick={(e) => e.stopPropagation()}><Bell size={16} strokeWidth={1.5} /></button>}
+          {menuOpen && <ChevronUp size={20} strokeWidth={1.5} />}
         </div>
       </div>
     </aside>

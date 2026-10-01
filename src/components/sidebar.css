@@ -1,0 +1,149 @@
+/**
+ * Sidebar, aligned to XenDS.
+ * Figma: file UPodj9uOVyuqY5hNy8tJB2 → `Sidebar` 2955:18230, `.parent menu` 1332:5284.
+ * Every colour below points at the token the Figma layer is bound to; the two
+ * exceptions are marked, because the Figma layer itself has no variable.
+ */
+@import '../design/tokens.css';
+
+.sidebar {
+  /* Figma binds no variable here — the page carries a note that the sidebar
+     needs a colour set Global Color does not have yet. */
+  --sidebar-bg: #fbfcfd;
+
+  width: 248px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--xds-color-border-default);
+}
+
+/* ---------- header / brand (Header 2955:17742) ---------- */
+.sidebar .brand {
+  height: 48px;
+  padding: var(--xds-spacing-xs) var(--xds-spacing-sm) var(--xds-spacing-xs) var(--xds-spacing-xs);
+  border-bottom: 0;
+}
+.sidebar .brand-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--xds-spacing-xs);
+  padding: var(--xds-spacing-2xs);
+  border-radius: var(--xds-radius-sm);
+  font-size: var(--xds-type-subheading-md-size);
+  line-height: var(--xds-type-subheading-md-line);
+  font-weight: var(--xds-type-subheading-md-weight);
+  letter-spacing: var(--xds-type-subheading-md-tracking);
+  color: var(--xds-color-text-default);
+}
+.sidebar .brand-chip:hover { background: var(--xds-color-background-weak); }
+
+/* ---------- group title (.top-separator 2849:65087) ---------- */
+.sidebar .nav { padding-top: 0; }
+.sidebar .nav-group { padding: 0 0 var(--xds-spacing-2xs); }
+.sidebar .nav-group + .nav-group { border-top: 0; padding-top: 0; }
+.sidebar .nav-title {
+  height: auto;
+  margin: 0;
+  padding: var(--xds-spacing-sm) var(--xds-spacing-sm) var(--xds-spacing-xs);
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--xds-color-text-disabled);
+}
+
+/* ---------- menu item (.parent menu 1332:5284) ---------- */
+.sidebar .nav-item {
+  height: 32px;
+  width: auto;
+  margin: 0 var(--xds-spacing-2xs);
+  padding: var(--xds-spacing-xs) var(--xds-spacing-2xs) var(--xds-spacing-xs) var(--xds-spacing-sm);
+  gap: var(--xds-spacing-xs);
+  border-radius: var(--xds-radius-sm);
+  font-size: var(--xds-type-body-md-size);     /* 12px in XenDS caption scale */
+  line-height: var(--xds-type-caption-regular-line);
+  color: var(--xds-color-text-default);
+}
+.sidebar .nav-item,
+.sidebar .nav-item.sub { font-size: 12px; line-height: 16px; }
+.sidebar .nav-item svg { color: var(--xds-color-icon-default); }
+
+/* Figma binds this to the primitive xen/blue/50; the semantic role
+   xds-color-background/accent/weaker is the same colour. */
+.sidebar .nav-item:hover { background: var(--xds-color-background-accent-weaker); }
+
+.sidebar .nav-item.active {
+  color: var(--xds-color-text-accent);
+  font-weight: 500;
+  background: transparent;
+}
+.sidebar .nav-item.active svg { color: var(--xds-color-icon-accent); }
+.sidebar .nav-item.active::before {
+  left: 0;
+  top: 8px;
+  width: 4px;
+  height: 16px;
+  border-radius: var(--xds-radius-sm);
+  background: var(--xds-color-background-accent-default);
+}
+.sidebar .nav-item .chev { color: var(--xds-color-icon-weak); margin-right: 0; }
+.sidebar .nav-item.sub { padding-left: 36px; }
+
+/* "New" / "Beta" chip (.menu tag 2712:24422) */
+.sidebar .menu-tag {
+  flex: none;
+  padding: 0 var(--xds-spacing-2xs);
+  border-radius: var(--xds-radius-sm);
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 500;
+  color: var(--xds-color-text-warning);
+  background: var(--xds-color-background-warning-weaker);
+}
+
+/* Activity dot (Badge 55:204) */
+.sidebar .menu-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--xds-radius-full);
+  background: var(--xds-color-background-critical-default);
+}
+
+/* ---------- footer (.footer 5841:11772) ---------- */
+.sidebar .org-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--xds-spacing-md);
+  padding: var(--xds-spacing-sm) 0 var(--xds-spacing-lg);
+  margin-bottom: 0;
+  background: var(--xds-color-background-default);
+  border-top: 1px solid var(--xds-color-border-default);
+}
+.sidebar .notif-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--xds-spacing-xs);
+  height: 32px;
+  margin: 0 var(--xds-spacing-sm);
+  padding: var(--xds-spacing-2xs) var(--xds-spacing-xs);
+  border: 1px solid var(--xds-color-border-default);
+  border-radius: var(--xds-radius-sm);
+  background: var(--xds-color-background-default);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--xds-color-text-default);
+}
+.sidebar .notif-btn:hover { background: var(--xds-color-background-weak); }
+.sidebar .notif-btn svg { color: var(--xds-color-icon-default); }
+
+.sidebar .org-wrap .org {
+  height: 44px;
+  gap: var(--xds-spacing-sm);
+  margin: 0 var(--xds-spacing-xs);
+  padding: 0 var(--xds-spacing-2xs);
+  border-radius: var(--xds-radius-sm);
+}
+.sidebar .org-name { font-size: 12px; line-height: 16px; font-weight: 600; color: var(--xds-color-text-default); }
+.sidebar .org-user { font-size: 12px; line-height: 16px; color: var(--xds-color-text-weak); }
+.sidebar .org-logo { width: 32px; height: 32px; }

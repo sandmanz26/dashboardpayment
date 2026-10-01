@@ -1,0 +1,23 @@
+{
+  "$comment": "Which XenDS token each legacy CSS variable in styles.css stands for. The checker uses this to verify token identity, not just hex equality. 'status' records whether the code value currently matches the token.",
+  "map": {
+    "--blue":      { "token": "xds-color-text/accent",                 "css": "--xds-color-text-accent",          "code": "#0b5fff", "figma": "#1762ee", "status": "drift" },
+    "--blue-soft": { "token": "xds-color-background/accent/weaker",    "css": "--xds-color-background-accent-weaker", "code": "#e8f0ff", "figma": "#f3f7fe", "status": "drift" },
+    "--text":      { "token": "xds-color-text/default",                "css": "--xds-color-text-default",         "code": "#1a1f2b", "figma": "#252525", "status": "drift" },
+    "--muted":     { "token": "xds-color-text/weak",                   "css": "--xds-color-text-weak",            "code": "#6b7280", "figma": "#7c7c7c", "status": "drift" },
+    "--line":      { "token": "xds-color-border/weak",                 "css": "--xds-color-border-weak",          "code": "#e7eaf0", "figma": "#b7b7b7", "status": "drift" },
+    "--line-soft": { "token": "xds-color-border/default",              "css": "--xds-color-border-default",       "code": "#eef0f4", "figma": "#ededed", "status": "drift" },
+    "--bg":        { "token": "xds-color-background/weak",             "css": "--xds-color-background-weak",      "code": "#f7f9fc", "figma": "#fafafa", "status": "drift" },
+    "--green":     { "token": "xds-color-text/success",                "css": "--xds-color-text-success",         "code": "#0e7a4d", "figma": "#007c5c", "status": "drift" },
+    "--green-bg":  { "token": "xds-color-background/success/weaker",   "css": "--xds-color-background-success-weaker", "code": "#eefaf3", "figma": "#f3fdfa", "status": "drift" },
+    "--green-line":{ "token": "xds-color-border/success/weak",         "css": "--xds-color-border-success-weak",  "code": "#b4e2c9", "figma": "#99ecd6", "status": "drift" },
+    "--red":       { "token": "xds-color-text/critical",               "css": "--xds-color-text-critical",        "code": "#b42318", "figma": "#d1414d", "status": "drift" },
+    "--red-bg":    { "token": "xds-color-background/critical/weaker",  "css": "--xds-color-background-critical-weaker", "code": "#fef3f2", "figma": "#fef6f7", "status": "drift" },
+    "--red-line":  { "token": "xds-color-border/critical/weak",        "css": "--xds-color-border-critical-weak", "code": "#f9c4bf", "figma": "#f6b6bb", "status": "drift" }
+  },
+  "unbound": {
+    "$comment": "Values the Figma file itself leaves without a token. Nothing to sync to — raise with design.",
+    "sidebar-background": { "figma": "#fbfcfd", "note": "sticky note on the Sidebar page: the sidebar needs a colour set that Global Color does not have yet" },
+    "menu-hover": { "figma": "#f3f7fe", "boundTo": "xen/blue/50", "note": "bound to a primitive; xds-color-background/accent/weaker is the same colour and is the semantic role" }
+  }
+}

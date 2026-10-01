@@ -4,7 +4,23 @@ Source: **XenDS Component - DUPLICATED - DANIEL** → page `-> Sidebar` → comp
 menu item component set `.parent menu` (`1332:5284`).
 Code: `src/components/Sidebar.tsx`, `src/styles.css`.
 
-Read-only audit. Nothing was changed.
+**Status: aligned.** The table below is the audit as first taken; everything marked ✗ in sections 1–3
+has since been fixed in `src/components/sidebar.css`, except where noted under *Still open*.
+
+Measured after the fix, on `/transactions`: width 248px, background `#fbfcfd`, right border `#ededed`,
+item 32px high, padding `8px 4px 8px 12px`, radius 4px, label 12px/16px, selected `#1762ee`,
+group title 10px/12px `#909090` — all equal to Figma.
+
+### Still open
+
+- **Sub-menu items** follow `.child menu` (1332:5353) only in type and colour; its `Position`
+  (First/Middle/Last) rail treatment is not implemented.
+- **`Has Tag` and `Has Activity`** now have CSS (`.menu-tag`, `.menu-dot`) bound to the right tokens,
+  but no nav item uses them yet — there is no data for them.
+- **Selected indicator side** is assumed to be the left edge. The Figma layer (`Rectangle 15`, 4×16,
+  radius 4) sits inside the item container; its side was not confirmed.
+- **The rest of the app** still uses the legacy variables in `styles.css`. Only the sidebar was moved
+  onto XenDS tokens.
 
 ## 1. Structure
 
