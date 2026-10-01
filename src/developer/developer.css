@@ -317,12 +317,17 @@ a.dv-btn.primary { color: #fff; }
 .cf-node.out { cursor: pointer; }
 .cf-node.out.ok rect { stroke: #abdfc1; fill: #f6fdf9; }
 .cf-node.out.bad rect { stroke: #f3c7c1; fill: #fffaf9; }
-.cf-node.out.on rect { stroke-width: 2.5; stroke: #2563eb; }
 .cf-node.out:focus-visible rect { outline: 2px solid var(--blue); outline-offset: 2px; }
 .cf-edge { fill: none; stroke: #d0d5dd; stroke-width: 1.5; }
 .cf-edge-g.on .cf-edge { stroke: #2563eb; stroke-width: 2; }
 .cf-lbl { font-size: 11px; fill: #667085; }
 .cf-edge-g.on .cf-lbl { fill: #2563eb; }
-.cf-node.step { cursor: pointer; }
-.cf-node.step.on rect { stroke: #2563eb; stroke-width: 2.5; fill: #f4f8ff; }
+.cf-node { cursor: pointer; }
 .cf-node.step:focus-visible rect { outline: 2px solid var(--blue); outline-offset: 2px; }
+.cf-node.locked rect { stroke-dasharray: 4 4; opacity: .55; }
+.cf-node.locked .t1, .cf-node.locked .t2 { opacity: .5; }
+.cf-node.next rect { stroke: #2563eb; stroke-width: 2; }
+.cf-node.done rect { stroke: #abdfc1; fill: #f6fdf9; }
+.cf-node.bad rect { stroke: #f0a9a1; fill: #fff6f5; }
+.cf-node.sel rect { stroke: #2563eb; stroke-width: 2.5; }
+.cf-edge.on { stroke: #94a3b8; }

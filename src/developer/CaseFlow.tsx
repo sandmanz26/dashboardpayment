@@ -1,17 +1,34 @@
-/** Small linear workflow diagram for a Try case: request → processing → one node per outcome. */
+/** Linear workflow diagram for a Try case: request → processing → one node per outcome. */
+export type NodeState = 'todo' | 'next' | 'done' | 'bad' | 'locked';
 export interface FlowStep { id: string; label: string; sub?: string }
 export interface FlowOutcome { id: string; label: string; tone: 'ok' | 'bad' }
 
 const W = 168, H = 56, GAP = 38;
 
-export default function CaseFlow({ steps, outcomes, active, onPick }: {
-  steps: FlowStep[]; outcomes: FlowOutcome[]; active: string | null; onPick?: (id: string) => void;
+export default function CaseFlow({ steps, outcomes, states, active, onPick }: {
+  steps: FlowStep[];
+  outcomes: FlowOutcome[];
+  states: Record<string, NodeState>;
+  active: string | null;
+  onPick: (id: string) => void;
 }) {
   const rowY = 16;
   const outY = 140;
   const width = Math.max(steps.length, outcomes.length) * (W + GAP) - GAP;
-  const lastX = (steps.length - 1) * (W + GAP);
-  const forkX = lastX + W / 2;
+  const forkX = (steps.length - 1) * (W + GAP) + W / 2;
+  const outX = (i: number) => i * (width - W) / Math.max(outcomes.length - 1, 1) + W / 2;
+  const cls = (id: string) => `${states[id] ?? 'todo'}${active === id ? ' sel' : ''}`;
+
+  const node = (id: string, label: string, sub: string | undefined, x: number, extra: string) => (
+    <g key={id} className={`cf-node ${extra} ${cls(id)}`}
+      role="button" tabIndex={0} aria-pressed={active === id} aria-label={`${label}${sub ? ` — ${sub}` : ''}`}
+      onClick={() => onPick(id)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(id); } }}>
+      <rect x={x} y={extra === 'step' ? rowY : outY} width={W} height={H} rx="9" />
+      <text className="t1" x={x + W / 2} y={(extra === 'step' ? rowY : outY) + (sub ? 24 : 33)} textAnchor="middle">{label}</text>
+      {sub && <text className="t2" x={x + W / 2} y={rowY + 40} textAnchor="middle">{sub}</text>}
+    </g>
+  );
 
   return (
     <svg className="cf" style={{ maxWidth: width }} viewBox={`0 0 ${width} ${outY + H + 24}`} role="group" aria-label="Workflow for this case">
@@ -21,44 +38,18 @@ export default function CaseFlow({ steps, outcomes, active, onPick }: {
         </marker>
       </defs>
 
-      {steps.slice(0, -1).map((_, i) => (
-        <path key={i} className="cf-edge" d={`M${i * (W + GAP) + W} ${rowY + H / 2} H${(i + 1) * (W + GAP) - 2}`} markerEnd="url(#cf-arrow)" />
+      {steps.slice(0, -1).map((s, i) => (
+        <path key={s.id} className={`cf-edge ${states[steps[i + 1].id] === 'locked' ? '' : 'on'}`}
+          d={`M${i * (W + GAP) + W} ${rowY + H / 2} H${(i + 1) * (W + GAP) - 2}`} markerEnd="url(#cf-arrow)" />
       ))}
 
-      {outcomes.map((o, i) => {
-        const x = i * (width - W) / Math.max(outcomes.length - 1, 1) + W / 2;
-        return (
-          <g key={`e-${o.id}`} className={`cf-edge-g ${active === o.id ? 'on' : ''} ${o.tone}`}>
-            <path className="cf-edge" d={`M${forkX} ${rowY + H} V${(rowY + H + outY) / 2} H${x} V${outY - 2}`} markerEnd="url(#cf-arrow)" />
-          </g>
-        );
-      })}
-
-      {steps.map((s, i) => (
-        <g key={s.id} className={`cf-node step ${active === s.id ? 'on' : ''}`}
-          role={onPick ? 'button' : undefined} tabIndex={onPick ? 0 : undefined}
-          aria-pressed={onPick ? active === s.id : undefined} aria-label={s.label}
-          onClick={() => onPick?.(s.id)}
-          onKeyDown={(e) => { if (onPick && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onPick(s.id); } }}>
-          <rect x={i * (W + GAP)} y={rowY} width={W} height={H} rx="9" />
-          <text className="t1" x={i * (W + GAP) + W / 2} y={s.sub ? rowY + 24 : rowY + 33} textAnchor="middle">{s.label}</text>
-          {s.sub && <text className="t2" x={i * (W + GAP) + W / 2} y={rowY + 40} textAnchor="middle">{s.sub}</text>}
-        </g>
+      {outcomes.map((o, i) => (
+        <path key={o.id} className={`cf-edge ${states[o.id] === 'done' || states[o.id] === 'bad' ? 'on' : ''}`}
+          d={`M${forkX} ${rowY + H} V${(rowY + H + outY) / 2} H${outX(i)} V${outY - 2}`} markerEnd="url(#cf-arrow)" />
       ))}
 
-      {outcomes.map((o, i) => {
-        const cx = i * (width - W) / Math.max(outcomes.length - 1, 1) + W / 2;
-        return (
-          <g key={o.id} className={`cf-node out ${o.tone} ${active === o.id ? 'on' : ''}`}
-            role={onPick ? 'button' : undefined} tabIndex={onPick ? 0 : undefined}
-            aria-pressed={onPick ? active === o.id : undefined} aria-label={o.label}
-            onClick={() => onPick?.(o.id)}
-            onKeyDown={(e) => { if (onPick && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onPick(o.id); } }}>
-            <rect x={cx - W / 2} y={outY} width={W} height={H} rx="9" />
-            <text className="t1" x={cx} y={outY + 33} textAnchor="middle">{o.label}</text>
-          </g>
-        );
-      })}
+      {steps.map((s, i) => node(s.id, s.label, s.sub, i * (W + GAP), 'step'))}
+      {outcomes.map((o, i) => node(o.id, o.label, undefined, outX(i) - W / 2, `out ${o.tone}`))}
     </svg>
   );
 }
