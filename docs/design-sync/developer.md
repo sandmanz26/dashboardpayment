@@ -187,3 +187,20 @@ the file rather than forced into the nearest token.
 - The `.mono` exception above still applies.
 - The Developer area has no XenDS counterpart for its code blocks, the flow diagram or the
   design-system checker — those stay as they are.
+
+## How the checker names a token
+
+One hex carries several roles. `#252525` is `xds-color-text/default`, `xds-color-icon/default` and
+`xds-color-background/inverse` at the same time, so "which token is this" has no single answer from
+the value alone.
+
+The inspector now answers it per property: a text colour is matched against the `text` roles, a
+background against `background`, a border against `border`. Before this, it reported whichever name
+happened to sort first — a heading's text colour came back as `background/inverse`, which is right
+about the hex and wrong about the meaning.
+
+Dimensions work the same way: each scale is separate, so a 16px font size is scored against the type
+scale and can no longer match `spacing/md`.
+
+Still approximate: when two type styles share a size — `Body/md` and `Subheading/md` are both 14px —
+the inspector names the first one and does not read the element's weight to choose between them.

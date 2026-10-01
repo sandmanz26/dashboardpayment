@@ -90,11 +90,20 @@ export function ownText(el: Element): string {
     .trim();
 }
 
-function colorCheck(group: PropCheck['group'], label: string, raw: string, lookup: Lookup): PropCheck | null {
+/**
+ * One hex usually carries several roles — #252525 is text/default, icon/default and
+ * background/inverse at once. Name the role that belongs to the property being checked, so a text
+ * colour is never reported as a background role.
+ */
+function pickToken(names: string[], family: string): string {
+  return names.find((n) => new RegExp(`(^|[-/])${family}([-/]|$)`, 'i').test(n)) ?? names[0];
+}
+
+function colorCheck(group: PropCheck['group'], label: string, raw: string, lookup: Lookup, family: string): PropCheck | null {
   const key = colorKey(raw);
   if (!key || key === TRANSPARENT) return null;
   const names = lookup.color.get(key);
-  return { group, label, value: raw, status: names ? 'token' : 'off', token: names?.[0] };
+  return { group, label, value: raw, status: names ? 'token' : 'off', token: names ? pickToken(names, family) : undefined };
 }
 
 /** Each dimension is scored against its own scale — a font size must never match a spacing step. */
@@ -123,10 +132,10 @@ export function checkElement(el: Element, lookup: Lookup): PropCheck[] {
   const out: PropCheck[] = [];
   const push = (c: PropCheck | null) => { if (c) out.push(c); };
 
-  if (hasOwnText(el)) push(colorCheck('color', 'text', cs.color, lookup));
-  push(colorCheck('color', 'background', cs.backgroundColor, lookup));
+  if (hasOwnText(el)) push(colorCheck('color', 'text', cs.color, lookup, 'text'));
+  push(colorCheck('color', 'background', cs.backgroundColor, lookup, 'background'));
   if (parseFloat(cs.borderTopWidth) > 0 || parseFloat(cs.borderLeftWidth) > 0) {
-    push(colorCheck('color', 'border', cs.borderTopColor, lookup));
+    push(colorCheck('color', 'border', cs.borderTopColor, lookup, 'border'));
   }
 
   if (hasOwnText(el)) {
