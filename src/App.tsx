@@ -7,6 +7,7 @@ import Settings from './pages/Settings';
 import Disputes from './pages/Disputes';
 import Subscriptions from './pages/Subscriptions';
 import Developers from './pages/Developers';
+import DesignTokens from './pages/DesignTokens';
 import DevEntry from './pages/DevEntry';
 import Secret from './pages/Secret';
 import Developer from './pages/Developer';
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="transactions" element={<Transactions />} />
         <Route path="settings" element={<Settings />} />
         <Route path="settings/developers" element={<Developers />} />
+        <Route path="settings/design-tokens" element={<DesignTokens />} />
         <Route path="developer" element={<Developer />} />
         <Route path="secret" element={<Secret />} />
         <Route path="dev" element={<DevEntry />} />

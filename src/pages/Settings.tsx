@@ -1,4 +1,4 @@
-import { Code, CircleArrowUp, ReceiptText, UserRoundCog, Users, Wallet } from 'lucide-react';
+import { Code, CircleArrowUp, Palette, ReceiptText, UserRoundCog, Users, Wallet } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
@@ -14,6 +14,7 @@ const account: Entry[] = [
 const setup: Entry[] = [
   { title: 'Payouts Approval Workflow', desc: 'Set and manage multi-level approval processes to review and approve payouts', icon: CircleArrowUp, to: '/settings/payout-approval' },
   { title: 'Developers', desc: 'Create API keys, authorize IP addresses to make API requests, and manage webhooks', icon: Code, to: '/settings/developers' },
+  { title: 'Design Tokens', desc: 'Preview the Xendit design system: palette, colour roles, spacing, radius and type styles', icon: Palette, to: '/settings/design-tokens' },
 ];
 
 function Grid({ title, items }: { title: string; items: Entry[] }) {

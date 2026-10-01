@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Crosshair, Palette, RefreshCw, Search, Settings
 import { buildLookup, checkElement, elementsUsingColor, hasOwnText, ownText, scanPage } from './scan';
 import type { Lookup, PropCheck, ScanResult } from './scan';
 import { clearTokens, colorKey, loadTokens, parseTokens, saveTokens, tokensFromCss } from './tokens';
+import { flatForChecker } from '../design/tokens';
 import type { Token } from './tokens';
 import './dstool.css';
 
@@ -238,6 +239,7 @@ function TokensPanel({ tokens, setTokens }: { tokens: Token[]; setTokens: (t: To
       {err && <p className="ds-err">{err}</p>}
       <div className="ds-try-row">
         <button className="ds-btn primary" onClick={load} disabled={!raw.trim()}>Load tokens</button>
+        <button className="ds-btn" onClick={() => { const { tokens: t } = parseTokens(JSON.stringify(flatForChecker())); setTokens(t); saveTokens(t); }}>Load Xendit tokens</button>
         <button className="ds-btn" onClick={() => { const t = tokensFromCss(); setTokens(t); saveTokens(t); }}>Read from CSS variables</button>
         <button className="ds-btn" onClick={() => { setTokens([]); clearTokens(); }}>Clear</button>
       </div>
