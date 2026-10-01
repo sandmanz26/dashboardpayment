@@ -1,3 +1,5 @@
+@import './design/tokens.css';
+
 :root {
   --blue: #0b5fff;
   --blue-soft: #e8f0ff;
@@ -210,10 +212,22 @@ h1, h2, p { margin: 0; }
 .cur-code { margin-right: 14px; font-weight: 500; }
 
 /* ---------- transactions ---------- */
+/* XenDS .Tab Item (3253:20660): 40 high, 8 gap, 14/16 — Regular and text/weak at rest,
+   Semi Bold and text/accent when active, over a 3px border/accent/default indicator. */
 .tabs { display: flex; gap: 32px; margin-top: 10px; }
-.tabs button { height: 44px; padding: 0 2px; font-size: 15px; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
-.tabs button:hover { color: var(--text); }
-.tabs button.active { color: var(--blue); font-weight: 500; border-bottom-color: var(--blue); }
+.tabs button {
+  height: 40px; padding: 0 2px; gap: 8px;
+  /* 14/16 like the Figma tab label; no named XenDS style carries that pair. */
+  font-size: var(--xds-type-body-md-size); line-height: 16px;
+  color: var(--xds-color-text-weak);
+  border-bottom: 3px solid transparent; margin-bottom: -1px;
+}
+.tabs button:hover { color: var(--xds-color-text-default); }
+.tabs button.active {
+  color: var(--xds-color-text-accent);
+  font-weight: var(--xds-type-subheading-md-weight);
+  border-bottom-color: var(--xds-color-border-accent-default);
+}
 .page-header.with-tabs { border-bottom: 1px solid var(--line-soft); }
 
 .status-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; margin-top: 45px; }

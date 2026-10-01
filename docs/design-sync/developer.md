@@ -129,6 +129,32 @@ this note, which claimed it did. It has now been done properly: every rule that 
 style also takes that style's `-tracking` value, so size, line-height, weight and tracking all come
 from one place. The hand-written `-.015em`, `-.01em`, `.02em` and `.03em` values are gone.
 
+## Component geometry
+
+Colour, type and spacing were synced first; this pass matched the remaining components to the
+measurements of their XenDS counterparts.
+
+| Code | XenDS component | Changed |
+| --- | --- | --- |
+| `.tabs button` | `.Tab Item` `3253:20660` | 44 → 40 high; label 15px → 14/16, `text/weak` at rest and Semi Bold `text/accent` when active; indicator 2px → 3px `border/accent/default` |
+| `.dv-table th` | `.01 HEADER` `5492:33061` | 44 high, 0/16 padding, 12px bold caption → 37 high, 8/12 padding, 14/16 Semi Bold `text/default` |
+| `.dv-table td` | `.01 TEXT` `5484:32728` | 54 → 56 high, 0/16 → 8/12 padding, explicit `Body/md` |
+| `.ev-badge`, `.badge-s` | `Tag` `55:391` | pill (radius 999) → 20 high, 2/4 padding, `radius/sm`, 12/16 Medium, 1px border in the role colour |
+| `.dv-modal` | `Dialog` `6193:5837` | radius 12 → 8 (`radius/md`) |
+| `.dv-form input`, `.dv-ta` | `.Base Text Input` `3755:7179` | radius 8 → 4; height was already 40 |
+| `.try-details summary` | `.Accordion Header` `7914:5243` | plain text row → 52 high, 16 padding, 14/20 Semi Bold on `background/weak` |
+
+Measured after the change on `/developer?tab=events`: tab 40px / 14px-16px, active weight 600;
+table cell 56px with 8/12 padding; tag 20px / radius 4 / 12px-16px weight 500.
+
+Two values do not land exactly:
+
+- The table header computes to 40.5px rather than Figma's 37px. 37 is itself an odd number — it is
+  whatever the Figma frame happened to be — and forcing it would clip the 20px line box plus
+  padding. The padding and type match; the height does not.
+- Tab and button labels are 14/16, a pair no named XenDS type style carries (`Subheading/md` is
+  14/20). Both are written as an explicit 16px line-height with a comment.
+
 ## Not done
 
 - `src/dstool/*` (the design-system checker) is deliberately excluded. It is tooling that inspects
