@@ -155,6 +155,31 @@ Two values do not land exactly:
 - Tab and button labels are 14/16, a pair no named XenDS type style carries (`Subheading/md` is
   14/20). Both are written as an explicit 16px line-height with a comment.
 
+## Every screen under the Developer menu
+
+The earlier passes covered `developer.css`. This one finishes the job for the shared styles those
+screens pull in from `styles.css`, so that nothing on a Developer screen resolves to a legacy value:
+
+| Block | Scope |
+| --- | --- |
+| `.dev-page`, `.dev-card`, `.dev-table`, `.dev-empty`, `.key-box`, `.ip-*`, `.toggle-row`, `.switch`, `.token-row`, `.legacy-note` | retinted in `styles.css` — only the Developers screens use them |
+| `.guides`, `.guide-card`, `.guide-row`, `.tab-intro`, `.filter-*`, `.ev-table`, `.ev-badge` | same |
+| `.card`, `.page-header` | **not** changed globally. Retinted through `.card:has(.dv-tab)` and `.card:has(.dev-page)` in `developer.css`, so the shell changes only where a Developer screen renders |
+| `.btn` | same approach: `.dv-tab .btn` and `.dev-page .btn` |
+
+### Verified
+
+A sweep of all six screens — Guides, Try, API keys, Webhooks, Events, and `/settings/developers` —
+for the computed values of the legacy variables (`--blue` `#0b5fff`, `--text` `#1a1f2b`,
+`--muted` `#6b7280`, `--line` `#e7eaf0`, `--line-soft` `#eef0f4`, `--bg` `#f7f9fc`,
+`--blue-soft` `#e8f0ff`) returns **nothing** on any of them. No console errors.
+
+### The one colour left alone
+
+The **TEST MODE** banner keeps `#f26a3d`. XenDS has no role for an environment banner — the closest,
+`background/warning/default`, is yellow and would read as a caution rather than a mode. Flagged in
+the file rather than forced into the nearest token.
+
 ## Not done
 
 - `src/dstool/*` (the design-system checker) is deliberately excluded. It is tooling that inspects
