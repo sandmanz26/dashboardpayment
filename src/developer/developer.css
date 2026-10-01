@@ -471,3 +471,58 @@ a.dv-btn.primary { color: var(--xds-color-text-inverse); }
 
 /* Monospace keeps a relative size: XenDS has no mono type style, and matching the surrounding
    text optically needs the .92em correction. This is the one place left off the scale. */
+
+/**
+ * Generate API key dialog — matched to the real Xendit console: a required name with a character
+ * counter, then a scrolling permission matrix, then a pinned footer.
+ */
+.ak-form { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.ak-body { flex: 1; min-height: 0; overflow-y: auto; padding: var(--xds-spacing-lg) var(--xds-spacing-xl); }
+
+.ak-label {
+  display: block; margin-bottom: var(--xds-spacing-xs);
+  font-size: var(--xds-type-subheading-md-size); line-height: var(--xds-type-subheading-md-line);
+  font-weight: var(--xds-type-subheading-md-weight); color: var(--xds-color-text-default);
+}
+.ak-label span { color: var(--xds-color-text-critical); }
+.ak-input {
+  width: 100%; height: 40px; padding: 0 var(--xds-spacing-sm);
+  border: 1px solid var(--xds-color-border-default); border-radius: var(--xds-radius-sm);
+  background: var(--xds-color-background-default); outline: 0;
+  font-size: var(--xds-type-body-md-size); color: var(--xds-color-text-default);
+}
+.ak-input::placeholder { color: var(--xds-color-text-weak); }
+.ak-input:focus { border-color: var(--xds-color-background-accent-default); }
+.ak-count {
+  margin-top: var(--xds-spacing-2xs); text-align: right;
+  font-size: var(--xds-type-caption-regular-size); line-height: var(--xds-type-caption-regular-line);
+  color: var(--xds-color-text-weak);
+}
+
+.ak-matrix { margin-top: var(--xds-spacing-lg); }
+.ak-mhead, .ak-mrow { display: grid; grid-template-columns: 1fr 96px 96px 96px; align-items: center; }
+.ak-mhead {
+  padding-bottom: var(--xds-spacing-xs);
+  border-bottom: 1px solid var(--xds-color-border-default);
+  font-size: var(--xds-type-label-xs-regular-size); line-height: var(--xds-type-label-xs-regular-line);
+  letter-spacing: .06em; text-transform: uppercase; color: var(--xds-color-text-weak);
+}
+.ak-mhead span:not(:first-child), .ak-cell { text-align: center; justify-self: center; }
+.ak-mrow { padding: var(--xds-spacing-md) 0; border-bottom: 1px solid var(--xds-color-border-default); }
+.ak-feature { display: grid; gap: var(--xds-spacing-2xs); padding-right: var(--xds-spacing-md); }
+.ak-feature b {
+  font-size: var(--xds-type-subheading-md-size); line-height: var(--xds-type-subheading-md-line);
+  font-weight: var(--xds-type-subheading-md-weight); color: var(--xds-color-text-default);
+}
+.ak-feature span {
+  font-size: var(--xds-type-body-md-size); line-height: var(--xds-type-body-md-line);
+  color: var(--xds-color-text-weak);
+}
+.ak-cell { display: flex; align-items: center; justify-content: center; }
+.ak-cell input[type="radio"] { width: 16px; height: 16px; accent-color: var(--xds-color-background-accent-default); cursor: pointer; }
+
+.ak-foot {
+  display: flex; flex: none; justify-content: flex-end; gap: var(--xds-spacing-sm);
+  padding: var(--xds-spacing-md) var(--xds-spacing-xl);
+  border-top: 1px solid var(--xds-color-border-default);
+}

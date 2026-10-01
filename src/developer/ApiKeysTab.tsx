@@ -3,6 +3,7 @@ import { Eye, EyeOff, Plus, TriangleAlert } from 'lucide-react';
 import { IpAllowlist } from '../pages/Developers';
 import { BASE_URL } from './postman';
 import { CopyButton, Modal } from './ui';
+import { FEATURES, NAME_LIMIT } from './apikeyFeatures';
 
 interface SecretKey { id: string; name: string; last4: string; access: 'Full access' | 'Read only'; created: string }
 const STORE = 'dev.secretKeys';
@@ -22,7 +23,9 @@ export default function ApiKeysTab() {
   const [keys, setKeys] = useState<SecretKey[]>(load);
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
-  const [access, setAccess] = useState<SecretKey['access']>('Full access');
+  const [perms, setPerms] = useState<Record<string, 'none' | 'read' | 'write'>>({});
+  // The access column in the key list is derived from the matrix: any write → full access.
+  const access: SecretKey['access'] = Object.values(perms).some((p) => p === 'write') ? 'Full access' : 'Read only';
   const [fresh, setFresh] = useState<string | null>(null); // full key, shown once
   const [showPub, setShowPub] = useState(false);
 
@@ -31,7 +34,7 @@ export default function ApiKeysTab() {
   const create = () => {
     const key = genKey();
     setKeys((k) => [...k, { id: crypto.randomUUID(), name: name.trim() || 'Untitled key', last4: key.slice(-4), access, created: today() }]);
-    setFresh(key); setCreating(false); setName(''); setAccess('Full access');
+    setFresh(key); setCreating(false); setName(''); setPerms({});
   };
 
   const maskedPub = `${PUBLIC_KEY.slice(0, 26)}${'•'.repeat(18)}${PUBLIC_KEY.slice(-4)}`;
@@ -88,17 +91,44 @@ export default function ApiKeysTab() {
       <div className="dev-page flush dv-legacy"><IpAllowlist /></div>
 
       {creating && (
-        <Modal title="Generate secret key" subtitle="Give the key a name so you can recognise it later." onClose={() => setCreating(false)} width={480}>
-          <form className="dv-form" onSubmit={(e) => { e.preventDefault(); create(); }}>
-            <label>Key name<input autoFocus placeholder="e.g. Backend – staging" value={name} onChange={(e) => setName(e.target.value)} /></label>
-            <label>Access
-              <select value={access} onChange={(e) => setAccess(e.target.value as SecretKey['access'])}>
-                <option>Full access</option><option>Read only</option>
-              </select>
-            </label>
-            <div className="dv-form-foot">
+        <Modal title="Generate API key" onClose={() => setCreating(false)} width={720}>
+          <form className="ak-form" onSubmit={(e) => { e.preventDefault(); if (name.trim()) create(); }}>
+            <div className="ak-body">
+              <label className="ak-label" htmlFor="ak-name">API key name <span aria-hidden="true">*</span></label>
+              <input id="ak-name" className="ak-input" autoFocus required maxLength={NAME_LIMIT}
+                placeholder="Public Key" value={name} onChange={(e) => setName(e.target.value)} />
+              <div className="ak-count">{name.length}/{NAME_LIMIT}</div>
+
+              <div className="ak-matrix" role="table" aria-label="Permissions">
+                <div className="ak-mhead" role="row">
+                  <span role="columnheader">Feature</span>
+                  <span role="columnheader">None</span>
+                  <span role="columnheader">Read</span>
+                  <span role="columnheader">Write</span>
+                </div>
+                {FEATURES.map((f) => (
+                  <div className="ak-mrow" role="row" key={f.name}>
+                    <div className="ak-feature">
+                      <b>{f.name}</b>
+                      {f.desc && <span>{f.desc}</span>}
+                    </div>
+                    {(['none', 'read', 'write'] as const).map((lvl) => (
+                      <div className="ak-cell" role="cell" key={lvl}>
+                        {f.levels.includes(lvl) && (
+                          <input type="radio" name={`perm-${f.name}`} aria-label={`${f.name} — ${lvl}`}
+                            checked={(perms[f.name] ?? 'none') === lvl}
+                            onChange={() => setPerms((p) => ({ ...p, [f.name]: lvl }))} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="ak-foot">
               <button type="button" className="dv-btn" onClick={() => setCreating(false)}>Cancel</button>
-              <button type="submit" className="dv-btn primary">Generate</button>
+              <button type="submit" className="dv-btn primary" disabled={!name.trim()}>Generate key</button>
             </div>
           </form>
         </Modal>
