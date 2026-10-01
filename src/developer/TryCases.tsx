@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Play, RotateCcw } from 'lucide-react';
+import { BookOpen, Play, RotateCcw } from 'lucide-react';
 import { BASE_URL, pretty } from './postman';
 import { CodeBlock } from './ui';
+import CaseFlow from './CaseFlow';
+import type { FlowStep } from './CaseFlow';
 
 /** Outcome-driven practice cases. All bodies are illustrative and fictional; check docs.xendit.co for exact wording. */
 interface Outcome {
@@ -11,7 +13,7 @@ interface Outcome {
 }
 interface Case {
   id: string; title: string; blurb: string; method: 'POST' | 'GET'; path: string;
-  request: unknown; outcomes: Outcome[];
+  request: unknown; outcomes: Outcome[]; steps: FlowStep[]; docs?: string;
 }
 
 const BIZ = '65f0c1e2a4b7d900123abcde';
@@ -20,7 +22,8 @@ const hook = (event: string, data: Record<string, unknown>) => ({ event, data })
 export const CASES: Case[] = [
   {
     id: 'payout', title: 'Send a payout', blurb: 'Pay a bank account and see what happens when it succeeds or fails.',
-    method: 'POST', path: '/v2/payouts',
+    method: 'POST', path: '/v2/payouts', docs: '/apidocs/get-payment',
+    steps: [{ label: 'Create payout', sub: 'POST /v2/payouts' }, { label: 'Xendit validates', sub: 'Balance and account' }, { label: 'Bank processes', sub: 'Asynchronous' }],
     request: { reference_id: 'payout-demo-001', channel_code: 'ID_BCA', channel_properties: { account_holder_name: 'John Doe', account_number: '0000000000' }, amount: 90000, currency: 'IDR', description: 'Test payout' },
     outcomes: [
       { id: 'ok', label: 'Succeeds', tone: 'ok', status: 200, response: { id: 'disb-5e8a2c71', status: 'ACCEPTED', amount: 90000, currency: 'IDR', reference_id: 'payout-demo-001' },
@@ -34,7 +37,8 @@ export const CASES: Case[] = [
   },
   {
     id: 'refund', title: 'Refund a payment', blurb: 'Return money to a customer, in full or beyond what they paid.',
-    method: 'POST', path: '/refunds',
+    method: 'POST', path: '/refunds', docs: '/apidocs/get-payment',
+    steps: [{ label: 'Request refund', sub: 'POST /refunds' }, { label: 'Xendit checks', sub: 'Refundable amount' }, { label: 'Money returns', sub: 'Asynchronous' }],
     request: { payment_request_id: 'pr-7d1c0f4a', reference_id: 'refund-demo-001', amount: 150000, currency: 'IDR', reason: 'REQUESTED_BY_CUSTOMER' },
     outcomes: [
       { id: 'ok', label: 'Succeeds', tone: 'ok', status: 200, response: { id: 'rfd-2b9e1a77', status: 'PENDING', amount: 150000, currency: 'IDR' },
@@ -47,7 +51,8 @@ export const CASES: Case[] = [
   },
   {
     id: 'decline', title: 'Payment is declined', blurb: 'A customer tries to pay and it does not go through.',
-    method: 'POST', path: '/v3/payment_requests',
+    method: 'POST', path: '/v3/payment_requests', docs: '/apidocs/get-payment',
+    steps: [{ label: 'Create request', sub: 'POST /v3/payment_requests' }, { label: 'Customer approves', sub: 'In their wallet app' }, { label: 'Xendit settles', sub: 'Result by webhook' }],
     request: { reference_id: 'order-demo-002', type: 'PAY', country: 'ID', currency: 'IDR', request_amount: 150000, channel_code: 'OVO' },
     outcomes: [
       { id: 'fail', label: 'Insufficient e-wallet funds', tone: 'bad', status: 200, response: { payment_request_id: 'pr-0f3a9c1f', status: 'REQUIRES_ACTION' },
@@ -63,6 +68,7 @@ export const CASES: Case[] = [
   {
     id: 'token', title: 'Verify a webhook', blurb: 'Check x-callback-token so you never trust a forged request.',
     method: 'POST', path: 'your-server/webhooks/xendit',
+    steps: [{ label: 'Xendit sends event', sub: 'With x-callback-token' }, { label: 'You verify token', sub: 'Compare with stored' }, { label: 'You deduplicate', sub: 'By webhook-id' }],
     request: { event: 'payment.succeeded', data: { reference_id: 'order-demo-001', status: 'SUCCEEDED' } },
     outcomes: [
       { id: 'ok', label: 'Token matches', tone: 'ok', status: 200, response: { received: true }, what: 'Your handler compared the header with your stored token and accepted the event.' },
@@ -84,9 +90,18 @@ export default function TryCases({ caseId }: { caseId: string }) {
       <p className="dv-muted">{c.blurb} <b>Test mode</b> — simulated in your browser with fictional data.</p>
 
       <section className="try-panel case-panel">
+        <h4 className="try-h">Workflow</h4>
+        <CaseFlow
+          steps={c.steps}
+          outcomes={c.outcomes.map((o) => ({ id: o.id, label: o.label, tone: o.tone }))}
+          active={ran ?? pick}
+          onPick={(id) => { setPick(id); setRan(null); }}
+        />
+
         <h4 className="try-h">1 · Request</h4>
         <div className="try-req"><em className={`m ${c.method}`}>{c.method}</em><code>{c.path.startsWith('your') ? c.path : BASE_URL + c.path}</code></div>
         <CodeBlock title="Body · application/json" code={pretty(c.request)} />
+        {c.docs && <a className="dv-link" href={c.docs}><BookOpen size={14} />See this endpoint in the API reference</a>}
 
         <h4 className="try-h">2 · Choose what happens</h4>
         <fieldset className="try-radios" aria-label="Outcome">

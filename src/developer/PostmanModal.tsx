@@ -32,7 +32,7 @@ export default function PostmanModal({ onClose }: { onClose: () => void }) {
             <div className="grow">
               <b>Import both files</b>
               <p>In Postman choose <code>File → Import</code>, drop the two files, then select <code>Xendit – UIByte (test)</code> as the active environment.</p>
-              <a className="dv-link" href="https://web.postman.co/" target="_blank" rel="noreferrer">Open Postman on the web <ExternalLink size={13} /></a>
+              <a className="dv-link" href="https://www.postman.com/interstellar-shuttle-5542/xendit/folder/bbnmolt/general?sideView=agentMode" target="_blank" rel="noreferrer">Open the Xendit collection on Postman <ExternalLink size={13} /></a>
             </div>
           </li>
           <li>

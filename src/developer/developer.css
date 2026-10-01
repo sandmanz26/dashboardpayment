@@ -283,3 +283,36 @@ a.dv-btn.primary { color: #fff; }
 .cl-kind { padding: 1px 8px; border-radius: 999px; font-weight: 600; font-size: 11px; background: #e0ecff; color: #1d4ed8; }
 .cl-kind.improved { background: #fef3c7; color: #92400e; }
 .cl-kind.fixed { background: #dcfce7; color: #166534; }
+
+/* Guides cards */
+.dv-cards { display: grid; grid-template-columns: 1fr 1fr; }
+.dv-card { display: flex; flex-direction: column; align-items: flex-start; gap: 0; padding: 22px 24px 24px; border-top: 1px solid var(--line-soft); }
+.dv-card:nth-child(odd) { border-right: 1px solid var(--line-soft); }
+.dv-card.span2 { grid-column: 1 / -1; border-right: 0; }
+.dv-card h4 { margin: 12px 0 6px; font-size: 15.5px; font-weight: 600; }
+.dv-card p { margin: 0 0 16px; }
+.dv-card .dv-link { margin-bottom: 14px; }
+.dv-card .dv-btn { margin-top: auto; }
+.dv-card .dv-code { width: 100%; margin-bottom: 14px; }
+.dv-card-ic { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 9px; background: #eff4ff; color: #2563eb; }
+.dv-card-ic.docs { background: #f0f1fe; color: #4f46e5; }
+.dv-card-ic.try { background: #ecfdf3; color: #067647; }
+.dv-card-ic.hooks { background: #fff6ed; color: #c4320a; }
+.dv-card-ic.calls { background: #f2f4f7; color: #344054; }
+@media (max-width: 880px) { .dv-cards { grid-template-columns: 1fr; } .dv-card:nth-child(odd) { border-right: 0; } }
+
+/* Case workflow diagram */
+.cf { width: 100%; height: auto; margin: 4px 0 18px; }
+.cf-node rect { fill: #fff; stroke: var(--line); stroke-width: 1.5; }
+.cf-node.step rect { fill: #f9fafb; }
+.cf-node .t1 { font-size: 13px; font-weight: 600; fill: #101828; }
+.cf-node .t2 { font-size: 11px; fill: #667085; }
+.cf-node.out { cursor: pointer; }
+.cf-node.out.ok rect { stroke: #abdfc1; fill: #f6fdf9; }
+.cf-node.out.bad rect { stroke: #f3c7c1; fill: #fffaf9; }
+.cf-node.out.on rect { stroke-width: 2.5; stroke: #2563eb; }
+.cf-node.out:focus-visible rect { outline: 2px solid var(--blue); outline-offset: 2px; }
+.cf-edge { fill: none; stroke: #d0d5dd; stroke-width: 1.5; }
+.cf-edge-g.on .cf-edge { stroke: #2563eb; stroke-width: 2; }
+.cf-lbl { font-size: 11px; fill: #667085; }
+.cf-edge-g.on .cf-lbl { fill: #2563eb; }

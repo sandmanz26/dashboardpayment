@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Copy, Check, FastForward, RotateCcw, RotateCw, Send, SquareTerminal, X } from 'lucide-react';
+import { BookOpen, Copy, Check, FastForward, RotateCcw, RotateCw, Send, SquareTerminal, X } from 'lucide-react';
 import { addAttempt, behaviourLabel, fmtInterval, fmtOffset, RETRY_S, summarise } from './delivery';
 import type { Behaviour, Delivery } from './delivery';
 import { invoicePaidPayload } from './samples';
@@ -238,6 +238,7 @@ export default function TryFlow() {
                 )}
                 <CopyCurl ep={invoiceEndpoint} />
                 <button className="dv-btn sm" onClick={() => setFree(invoiceEndpoint)}><SquareTerminal size={14} />Open as free request</button>
+                <a className="dv-btn sm" href="/apidocs/get-payment"><BookOpen size={14} />API reference</a>
               </div>
 
               {apiError && (

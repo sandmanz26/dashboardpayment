@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { BookOpen, History, Ellipsis, ExternalLink, Link2, ListFilter, Play, Search, Terminal, X } from 'lucide-react';
+import { BookOpen, History, KeyRound, Webhook, Ellipsis, ExternalLink, Link2, ListFilter, Play, Search, Terminal, X } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { Webhooks } from './Developers';
 import { events } from '../data/events';
@@ -72,43 +72,44 @@ function Guides({ go, openPostman }: { go: (t: TabKey) => void; openPostman: () 
 
       <section className="dv-panel">
         <header><h3>Things you can do</h3></header>
-        <div className="dv-row">
-          <div>
+        <div className="dv-cards">
+          <article className="dv-card">
+            <span className="dv-card-ic keys"><KeyRound size={18} /></span>
             <h4>Manage API keys</h4>
             <p className="dv-muted">Generate and manage your API keys.</p>
-          </div>
-          <button className="dv-btn primary" onClick={() => go('api-keys')}>Manage API keys</button>
-        </div>
-        <div className="dv-row">
-          <div className="grow">
+            <button className="dv-btn primary" onClick={() => go('api-keys')}>Manage API keys</button>
+          </article>
+
+          <article className="dv-card">
+            <span className="dv-card-ic docs"><BookOpen size={18} /></span>
+            <h4>Browse the API reference</h4>
+            <p className="dv-muted">Endpoints, parameters and responses. Start with how to get the status of a payment.</p>
+            <a className="dv-btn" href="/apidocs/get-payment"><BookOpen size={14} />Open API reference</a>
+          </article>
+
+          <article className="dv-card">
+            <span className="dv-card-ic try"><Play size={18} /></span>
+            <h4>Try the payment flow</h4>
+            <p className="dv-muted">Create an invoice, simulate the payment and watch the webhook arrive. Break your receiver on purpose to see retries and timeouts.</p>
+            <button className="dv-btn" onClick={() => go('try')}><Play size={14} />Start guided flow</button>
+          </article>
+
+          <article className="dv-card">
+            <span className="dv-card-ic hooks"><Webhook size={18} /></span>
+            <h4>Configure Webhooks</h4>
+            <p className="dv-muted">Subscribe to Xendit events and receive notifications.</p>
+            <a className="dv-link" href="#webhook-guide"><Link2 size={14} />Webhook guide</a>
+            <button className="dv-btn" onClick={() => go('webhooks')}>Add Webhook</button>
+          </article>
+
+          <article className="dv-card span2">
+            <span className="dv-card-ic calls"><Terminal size={18} /></span>
             <h4>Make API calls</h4>
-            <p>Use your account API credentials to make API calls.</p>
+            <p className="dv-muted">Use your account API credentials to make API calls.</p>
             <CodeBlock title="cURL · Get balance" code={curl(endpoints[0])} />
             <a className="dv-link" href="/apidocs/get-payment"><Link2 size={14} />API reference</a>
-          </div>
-          <button className="dv-btn" onClick={openPostman}><Terminal size={14} />Try on Postman</button>
-        </div>
-        <div className="dv-row">
-          <div>
-            <h4>Browse the API reference</h4>
-            <p>Endpoints, parameters and responses. Start with how to get the status of a payment.</p>
-          </div>
-          <a className="dv-btn" href="/apidocs/get-payment"><BookOpen size={14} />Open API reference</a>
-        </div>
-        <div className="dv-row">
-          <div>
-            <h4>Try the payment flow</h4>
-            <p>Create an invoice, simulate the payment and watch the webhook arrive. Break your receiver on purpose to see retries and timeouts.</p>
-          </div>
-          <button className="dv-btn" onClick={() => go('try')}><Play size={14} />Start guided flow</button>
-        </div>
-        <div className="dv-row">
-          <div>
-            <h4>Configure Webhooks</h4>
-            <p>Subscribe to Xendit events and receive notifications.</p>
-            <a className="dv-link" href="#webhook-guide"><Link2 size={14} />Webhook guide</a>
-          </div>
-          <button className="dv-btn" onClick={() => go('webhooks')}>Add Webhook</button>
+            <button className="dv-btn" onClick={openPostman}><Terminal size={14} />Try on Postman</button>
+          </article>
         </div>
       </section>
     </div>
