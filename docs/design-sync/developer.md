@@ -202,5 +202,24 @@ about the hex and wrong about the meaning.
 Dimensions work the same way: each scale is separate, so a 16px font size is scored against the type
 scale and can no longer match `spacing/md`.
 
-Still approximate: when two type styles share a size — `Body/md` and `Subheading/md` are both 14px —
-the inspector names the first one and does not read the element's weight to choose between them.
+## Variable or literal
+
+Matching a value could never answer "does this element use the token?", because a hard-coded
+`#252525` and `var(--xds-color-text-default)` compute to the same thing. The checker now reads the
+**author-level CSS** — every same-origin stylesheet rule that matches the element, plus its inline
+style, following inheritance for `color` and `font-size` — and reports what the stylesheet actually
+writes:
+
+| What the stylesheet says | Shown as | Verdict |
+| --- | --- | --- |
+| `var(--xds-color-text-weak)` | `--xds-color-text-weak` | ✓ uses the token |
+| `#7c7c7c` (same colour, written literally) | `rgb(124, 124, 124)` | ⚠ literal · names the token it should use |
+| `#f26a3d` (nothing in the system) | `rgb(242, 106, 61)` | ✕ no token |
+
+When a variable is named, that variable *is* the answer — the checker stops guessing from the value,
+which also settles the case where two type styles share a size (`Body/md` and `Subheading/md` are
+both 14px: whichever the CSS names is the one reported).
+
+Coverage counts only the first row. A literal that happens to equal a token is no longer scored as a
+pass, so the number dropped from what the earlier value-only check reported — 70% on the Guides tab,
+133 of 189 checks.

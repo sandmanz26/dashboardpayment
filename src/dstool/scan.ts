@@ -6,11 +6,92 @@ export type Status = 'token' | 'off' | 'none';
 export interface PropCheck {
   group: 'color' | 'typography' | 'shape';
   label: string;
-  value: string;
+  value: string;       // the computed value, e.g. "rgb(124, 124, 124)"
   status: Status;
-  token?: string;      // matching token name
+  token?: string;      // the token whose value this matches
   nearest?: string;    // closest token when off-scale
+  /** The CSS variable the stylesheet actually declares, when it declares one. */
+  varName?: string;
+  /** True when the value matches a token but the stylesheet writes a literal instead of the variable. */
+  literal?: boolean;
 }
+
+/* ---------- what the stylesheet actually declares ---------- */
+
+interface DeclRule { sel: string; props: Record<string, string> }
+const WATCHED = ['color', 'background-color', 'background', 'border-top-color', 'border-color',
+  'font-size', 'border-radius', 'border-top-left-radius'];
+let declCache: DeclRule[] | null = null;
+
+/** Author-level declarations for the properties we score. Same-origin sheets only. */
+function declaredRules(): DeclRule[] {
+  if (declCache) return declCache;
+  const out: DeclRule[] = [];
+  for (const sheet of Array.from(document.styleSheets)) {
+    let rules: CSSRuleList;
+    try { rules = sheet.cssRules; } catch { continue; }
+    const visit = (list: CSSRuleList) => {
+      for (const rule of Array.from(list)) {
+        if (rule instanceof CSSStyleRule) {
+          const props: Record<string, string> = {};
+          for (const prop of WATCHED) {
+            const v = rule.style.getPropertyValue(prop);
+            if (v) props[prop] = v.trim();
+          }
+          if (Object.keys(props).length) out.push({ sel: rule.selectorText, props });
+        } else if ('cssRules' in rule) {
+          visit((rule as CSSGroupingRule).cssRules);
+        }
+      }
+    };
+    visit(rules);
+  }
+  declCache = out;
+  return out;
+}
+
+/** Re-read the stylesheets, e.g. after a hot reload. */
+export const resetDeclarations = () => { declCache = null; };
+
+const PROP_ALIASES: Record<string, string[]> = {
+  color: ['color'],
+  background: ['background-color', 'background'],
+  border: ['border-top-color', 'border-color'],
+  'font-size': ['font-size'],
+  radius: ['border-top-left-radius', 'border-radius'],
+};
+
+/** color and font-size inherit, so the declaration that produced them may sit on an ancestor. */
+const INHERITED = new Set(['color', 'font-size']);
+
+function declaredOn(el: Element, props: string[]): string | null {
+  const inline = (el as HTMLElement).style;
+  for (const p of props) { const v = inline?.getPropertyValue(p); if (v) return v.trim(); }
+  let found: string | null = null;
+  for (const rule of declaredRules()) {
+    let matches = false;
+    try { matches = el.matches(rule.sel); } catch { continue; }
+    if (!matches) continue;
+    for (const p of props) if (rule.props[p]) found = rule.props[p];
+  }
+  return found;
+}
+
+/** The declaration that wins for this element, following inheritance, or null when there is none. */
+function declaredFor(el: Element, kind: keyof typeof PROP_ALIASES): string | null {
+  const props = PROP_ALIASES[kind];
+  let node: Element | null = el;
+  const inherits = INHERITED.has(props[0]);
+  while (node) {
+    const v = declaredOn(node, props);
+    if (v && v !== 'inherit') return v;
+    if (!inherits) return null;
+    node = node.parentElement;
+  }
+  return null;
+}
+
+const VAR_RE = /var\(\s*(--[\w-]+)/;
 
 export interface Lookup {
   color: Map<string, string[]>;      // "r,g,b,a" -> token names
@@ -18,6 +99,7 @@ export interface Lookup {
   spacing: Map<string, string[]>;    // "16px"    -> spacing token names
   fontSize: Map<string, string[]>;   // "14px"    -> type-scale token names
   font: string[];                    // font-family token values
+  names: Set<string>;                // every token name, for resolving a declared variable
 }
 
 /** Which scale a dimension token belongs to, read from its name. */
@@ -57,7 +139,7 @@ export function buildLookup(tokens: Token[]): Lookup {
   const roleFirst = (names: string[]) =>
     [...names].sort((a, b) => Number(/^xds-color|color-/.test(b)) - Number(/^xds-color|color-/.test(a)));
   for (const [k, v] of color) color.set(k, roleFirst(v));
-  return { color, radius, spacing, fontSize, font };
+  return { color, radius, spacing, fontSize, font, names: new Set(tokens.map((t) => t.name)) };
 }
 
 /** px value rounded to 2 decimals, converting rem at the document root size. */
@@ -99,21 +181,35 @@ function pickToken(names: string[], family: string): string {
   return names.find((n) => new RegExp(`(^|[-/])${family}([-/]|$)`, 'i').test(n)) ?? names[0];
 }
 
-function colorCheck(group: PropCheck['group'], label: string, raw: string, lookup: Lookup, family: string): PropCheck | null {
+function colorCheck(el: Element, group: PropCheck['group'], label: string, raw: string, lookup: Lookup, family: string,
+                    kind: keyof typeof PROP_ALIASES): PropCheck | null {
   const key = colorKey(raw);
   if (!key || key === TRANSPARENT) return null;
   const names = lookup.color.get(key);
-  return { group, label, value: raw, status: names ? 'token' : 'off', token: names ? pickToken(names, family) : undefined };
+  const declared = declaredFor(el, kind);
+  const varName = declared ? (VAR_RE.exec(declared)?.[1] ?? undefined) : undefined;
+  const named = varName && lookup.names.has(varName.slice(2)) ? varName.slice(2) : undefined;
+  return {
+    group, label, value: raw,
+    status: names || named ? 'token' : 'off',
+    token: named ?? (names ? pickToken(names, family) : undefined),
+    varName,
+    literal: !!names && !varName,
+  };
 }
 
 /** Each dimension is scored against its own scale — a font size must never match a spacing step. */
-function dimensionCheck(group: PropCheck['group'], label: string, raw: string, scale: Map<string, string[]>): PropCheck | null {
+function dimensionCheck(el: Element, group: PropCheck['group'], label: string, raw: string, scale: Map<string, string[]>,
+                        kind: keyof typeof PROP_ALIASES, allNames: Set<string>): PropCheck | null {
   const key = normPx(raw);
   if (!key || key === '0px') return null;
-  if (!scale.size) return { group, label, value: key, status: 'none' };
+  const declared = declaredFor(el, kind);
+  const varName = declared ? (VAR_RE.exec(declared)?.[1] ?? undefined) : undefined;
+  const named = varName && allNames.has(varName.slice(2)) ? varName.slice(2) : undefined;
+  if (!scale.size && !named) return { group, label, value: key, status: 'none', varName };
   const names = scale.get(key);
-  if (names) return { group, label, value: key, status: 'token', token: names[0] };
-  return { group, label, value: key, status: 'off', nearest: nearestDimension(key, scale) };
+  if (named || names) return { group, label, value: key, status: 'token', token: named ?? names![0], varName, literal: !varName };
+  return { group, label, value: key, status: 'off', nearest: nearestDimension(key, scale), varName };
 }
 
 function nearestDimension(value: string, scale: Map<string, string[]>): string | undefined {
@@ -132,21 +228,21 @@ export function checkElement(el: Element, lookup: Lookup): PropCheck[] {
   const out: PropCheck[] = [];
   const push = (c: PropCheck | null) => { if (c) out.push(c); };
 
-  if (hasOwnText(el)) push(colorCheck('color', 'text', cs.color, lookup, 'text'));
-  push(colorCheck('color', 'background', cs.backgroundColor, lookup, 'background'));
+  if (hasOwnText(el)) push(colorCheck(el, 'color', 'text', cs.color, lookup, 'text', 'color'));
+  push(colorCheck(el, 'color', 'background', cs.backgroundColor, lookup, 'background', 'background'));
   if (parseFloat(cs.borderTopWidth) > 0 || parseFloat(cs.borderLeftWidth) > 0) {
-    push(colorCheck('color', 'border', cs.borderTopColor, lookup, 'border'));
+    push(colorCheck(el, 'color', 'border', cs.borderTopColor, lookup, 'border', 'border'));
   }
 
   if (hasOwnText(el)) {
-    push(dimensionCheck('typography', 'font-size', cs.fontSize, lookup.fontSize));
+    push(dimensionCheck(el, 'typography', 'font-size', cs.fontSize, lookup.fontSize, 'font-size', lookup.names));
     const fam = cs.fontFamily;
     const famOk = lookup.font.some((f) => sameFamily(f, fam));
     out.push({ group: 'typography', label: 'family', value: fam.split(',')[0].replace(/["']/g, ''), status: lookup.font.length ? (famOk ? 'token' : 'off') : 'none' });
     out.push({ group: 'typography', label: 'weight / line-height', value: `${cs.fontWeight} / ${cs.lineHeight}`, status: 'none' });
   }
 
-  push(dimensionCheck('shape', 'radius', cs.borderTopLeftRadius, lookup.radius));
+  push(dimensionCheck(el, 'shape', 'radius', cs.borderTopLeftRadius, lookup.radius, 'radius', lookup.names));
   return out;
 }
 
@@ -175,7 +271,8 @@ export function scanPage(root: ParentNode, lookup: Lookup): ScanResult {
     if (!checks.length) continue;
     res.elements += 1;
     res.checks += checks.length;
-    const bad = checks.filter((c) => c.status === 'off').length;
+    // A literal that happens to equal a token is not "using" it — the stylesheet must say var(--…).
+    const bad = checks.filter((c) => c.status === 'off' || c.literal).length;
     res.usingToken += checks.length - bad;
     res.offToken += bad;
     (bad ? res.offElements : res.tokenElements).push(el);

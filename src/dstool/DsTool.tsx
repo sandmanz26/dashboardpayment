@@ -92,6 +92,7 @@ function Inspector({ lookup, onStop }: { lookup: Lookup; onStop: () => void }) {
 
   const r = hit.rect;
   const bad = hit.checks.filter((c) => c.status === 'off').length;
+  const literal = hit.checks.filter((c) => c.literal).length;
   const scored = hit.checks.filter((c) => c.status !== 'none').length;
   const top = r.bottom + 260 > window.innerHeight ? Math.max(8, r.top - 8 - 260) : r.bottom + 8;
   const groups: PropCheck['group'][] = ['color', 'typography', 'shape'];
@@ -100,8 +101,12 @@ function Inspector({ lookup, onStop }: { lookup: Lookup; onStop: () => void }) {
     <>
       <div className="ds-outline" data-ds-ui style={{ top: r.top, left: r.left, width: r.width, height: r.height }} />
       <div className="ds-card" data-ds-ui style={{ top, left: Math.min(r.left, window.innerWidth - 360) }}>
-        <div className={`ds-card-head ${bad ? 'bad' : 'ok'}`}>
-          {bad ? `✕ ${bad} of ${scored} off the tokens` : scored ? '✓ Fully matches design tokens' : 'Nothing token-relevant here'}
+        <div className={`ds-card-head ${bad ? 'bad' : literal ? 'warn' : 'ok'}`}>
+          {bad
+            ? `✕ ${bad} of ${scored} off the tokens`
+            : literal
+              ? `⚠ ${literal} of ${scored} hard-coded — the value is right, the variable is not used`
+              : scored ? '✓ Uses the design tokens' : 'Nothing token-relevant here'}
         </div>
 
         <div className="ds-sel">
@@ -125,11 +130,13 @@ function Inspector({ lookup, onStop }: { lookup: Lookup; onStop: () => void }) {
               {rows.map((c) => (
                 <div key={c.label} className="ds-row">
                   <span className="ds-row-l">{c.label}</span>
-                  <span className="ds-row-v">
+                  <span className="ds-row-v" title={c.value}>
                     {c.group === 'color' && <i className="ds-sw" style={{ background: c.value }} />}
-                    {c.value}
+                    {/* What the stylesheet writes: the variable when it uses one, the raw value when it does not. */}
+                    {c.varName ?? c.value}
                   </span>
-                  {c.status === 'token' && <span className="ds-pill ok">✓ {c.token}</span>}
+                  {c.status === 'token' && !c.literal && <span className="ds-pill ok">✓ {c.token}</span>}
+                  {c.status === 'token' && c.literal && <span className="ds-pill warn">literal · {c.token}</span>}
                   {c.status === 'off' && <span className="ds-pill bad">{c.nearest ? `near ${c.nearest}` : 'no token'}</span>}
                   {c.status === 'none' && <span className="ds-pill mute">—</span>}
                 </div>

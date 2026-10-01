@@ -82,3 +82,6 @@
 /* flags painted on the inspected page */
 .ds-flag-ok { outline: 2px solid rgba(34, 197, 94, .9) !important; outline-offset: -2px; }
 .ds-flag-bad { outline: 2px solid rgba(239, 68, 68, .9) !important; outline-offset: -2px; }
+.ds-pill.warn { background: #3a2e12; color: #fbbf24; }
+.ds-card-head.warn { background: #3a2e12; color: #fbbf24; }
+.ds-row-v { font-variant-ligatures: none; }
