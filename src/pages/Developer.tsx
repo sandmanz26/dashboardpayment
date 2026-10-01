@@ -131,8 +131,7 @@ function WebhooksTab() {
         {q && <button aria-label="Clear" onClick={() => setQ('')}><X size={14} /></button>}
       </label>
       <EndpointsPanel />
-      <h3 className="dv-sec">Per-event URLs <span className="dv-muted">· legacy</span></h3>
-      <div className="dev-page flush"><Webhooks filter={q} /></div>
+      <Webhooks filter={q} />
     </div>
   );
 }

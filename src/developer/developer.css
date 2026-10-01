@@ -121,20 +121,20 @@ tr:hover .dv-copy.hover, .dv-copy.hover:focus-visible { opacity: 1; }
 
 /* api keys */
 .dv-keyrow { display: flex; align-items: center; gap: var(--xds-spacing-xs); margin: 0; padding: var(--xds-spacing-md) var(--xds-spacing-lg); }
-.dv-keyrow code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: var(--xds-spacing-xs) var(--xds-spacing-sm); background: var(--xds-color-background-weak); border: 1px solid var(--xds-color-border-default); border-radius: var(--xds-radius-md); }
+.dv-keyrow code { flex: 1; min-width: 0; word-break: break-all; white-space: normal; padding: var(--xds-spacing-xs) var(--xds-spacing-sm); background: var(--xds-color-background-weak); border: 1px solid var(--xds-color-border-default); border-radius: var(--xds-radius-md); }
 .dv-form .dv-keyrow { padding: 0; }
 .dv-legacy { margin-top: var(--xds-spacing-xs); }
 .dv-legacy .dev-card { margin-top: var(--xds-spacing-lg); }
 
 /* modal + drawer */
 .dv-overlay { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: var(--xds-spacing-lg); background: rgba(15,23,42,.45); backdrop-filter: blur(2px); animation: dvfade .12s ease-out; }
-.dv-modal { width: 100%; max-height: calc(100vh - 48px); overflow-y: auto; background: var(--xds-color-background-default); border-radius: var(--xds-radius-lg); box-shadow: 0 24px 60px rgba(15,23,42,.3); outline: 0; animation: dvpop .16s ease-out; }
-.dv-modal > header { display: flex; justify-content: space-between; gap: var(--xds-spacing-md); padding: var(--xds-spacing-lg) var(--xds-spacing-xl) var(--xds-spacing-xs); }
+.dv-modal { display: flex; flex-direction: column; width: 100%; max-height: calc(100vh - 48px); overflow: hidden; background: var(--xds-color-background-default); border-radius: var(--xds-radius-lg); box-shadow: 0 24px 60px rgba(15,23,42,.3); outline: 0; animation: dvpop .16s ease-out; }
+.dv-modal > header { display: flex; flex: none; justify-content: space-between; gap: var(--xds-spacing-md); padding: var(--xds-spacing-lg) var(--xds-spacing-xl); border-bottom: 1px solid var(--xds-color-border-default); }
 .dv-modal h2 { margin: 0; font-size: var(--xds-type-heading-h3-size); line-height: var(--xds-type-heading-h3-line); font-weight: var(--xds-type-heading-h3-weight); letter-spacing: var(--xds-type-heading-h3-tracking); }
 .dv-modal header p { margin: var(--xds-spacing-2xs) 0 0; color: var(--xds-color-text-weak); }
 .dv-x { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--xds-radius-md); color: var(--xds-color-icon-default); flex: none; }
 .dv-x:hover { background: var(--xds-color-background-weak); }
-.dv-modal-body { padding: var(--xds-spacing-xs) var(--xds-spacing-xl) var(--xds-spacing-xl); }
+.dv-modal-body { flex: 1; min-height: 0; overflow-y: auto; padding: var(--xds-spacing-lg) var(--xds-spacing-xl); }
 .dv-steps { list-style: none; margin: var(--xds-spacing-xs) 0 0; padding: 0; display: grid; gap: var(--xds-spacing-2xs); }
 .dv-steps li { display: flex; gap: var(--xds-spacing-md); padding: var(--xds-spacing-md) 0; }
 .dv-steps li + li { border-top: 1px solid var(--xds-color-border-default); }
@@ -151,11 +151,20 @@ tr:hover .dv-copy.hover, .dv-copy.hover:focus-visible { opacity: 1; }
 .dv-seg button.on { border-color: var(--xds-color-background-accent-default); background: var(--xds-color-background-accent-weaker); color: var(--xds-color-background-accent-default); }
 .dv-seg .m { font: 700 10.5px var(--mono); font-style: normal; letter-spacing: .02em; }
 .dv-seg .m.GET { color: var(--xds-color-text-success); } .dv-seg .m.POST { color: var(--xds-color-text-warning); }
-.dv-form { display: grid; gap: var(--xds-spacing-md); padding: var(--xds-spacing-sm) var(--xds-spacing-xl) var(--xds-spacing-xl); }
+.dv-form { display: grid; gap: var(--xds-spacing-md); min-height: 0; overflow-y: auto; padding: var(--xds-spacing-lg) var(--xds-spacing-xl); }
+/* Grid items default to min-width:auto, which let a long key push past the dialog. */
+.dv-form > * { min-width: 0; }
 .dv-form label { display: grid; gap: var(--xds-spacing-xs); font-weight: var(--xds-type-label-md-semi-bold-weight); font-size: var(--xds-type-label-md-semi-bold-size); letter-spacing: var(--xds-type-label-md-semi-bold-tracking); line-height: var(--xds-type-label-md-semi-bold-line); }
 .dv-form input, .dv-form select { height: 40px; padding: 0 var(--xds-spacing-sm); border: 1px solid var(--xds-color-border-default); border-radius: var(--xds-radius-md); font-weight: 400; background: var(--xds-color-background-default); outline: 0; }
 .dv-form input:focus, .dv-form select:focus { border-color: var(--xds-color-background-accent-default); box-shadow: 0 0 0 3px var(--xds-color-background-accent-weak); }
-.dv-form-foot { display: flex; justify-content: flex-end; gap: var(--xds-spacing-sm); }
+/* Full-bleed footer with its own rule, pinned below the scrolling body. */
+.dv-form-foot {
+  display: flex; flex: none; justify-content: flex-end; gap: var(--xds-spacing-sm);
+  margin: var(--xds-spacing-md) calc(var(--xds-spacing-xl) * -1) calc(var(--xds-spacing-xl) * -1);
+  padding: var(--xds-spacing-md) var(--xds-spacing-xl);
+  border-top: 1px solid var(--xds-color-border-default);
+}
+.dv-form-foot .dv-btn { min-width: 0; }
 .dv-warn { display: flex; gap: var(--xds-spacing-sm); align-items: center; padding: var(--xds-spacing-sm) var(--xds-spacing-sm); border-radius: var(--xds-radius-md); background: var(--xds-color-background-warning-weaker); border: 1px solid var(--xds-color-border-warning-weak); color: var(--xds-color-text-warning); font-size: var(--xds-type-body-md-size); letter-spacing: var(--xds-type-body-md-tracking); line-height: var(--xds-type-body-md-line); }
 
 .dv-scrim { position: fixed; inset: 0; z-index: 80; background: rgba(15,23,42,.25); animation: dvfade .12s ease-out; }

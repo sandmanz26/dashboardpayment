@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, Copy, Info, Plus, Eye, Check } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Copy, Plus, Eye, Check } from 'lucide-react';
 import { webhookGroups } from '../data/webhooks';
+import './webhooks.css';
 
 const PUBLIC_KEY = 'xnd_public_development_Qm3vXk9tLzR2pYd7HcW4aJfN8sUeB6oTgV1iKxZy5CnMqAr0';
 
@@ -97,6 +98,7 @@ export function Webhooks({ filter = '' }: { filter?: string } = {}) {
   const [retry, setRetry] = useState(true);
   const [results, setResults] = useState<Record<string, { state: 'testing' | 'ok' | 'error'; msg: string }>>({});
   const [urls, setUrls] = useState<Record<string, string>>({});
+  const [open, setOpen] = useState<Record<string, boolean>>({});
   const [checks, setChecks] = useState<Record<string, boolean>>({
     'Also notify my application when a payment has been received after expiry': true,
   });
@@ -110,6 +112,7 @@ export function Webhooks({ filter = '' }: { filter?: string } = {}) {
     setResults((r) => ({ ...r, [k]: { state: 'testing', msg: 'Sending test event…' } }));
     setTimeout(() => setResults((r) => ({ ...r, [k]: { state: 'ok', msg: `200 OK · ${90 + Math.round(Math.random() * 120)} ms` } })), 700);
   };
+
   const q = filter.trim().toLowerCase();
   const groups = q
     ? webhookGroups
@@ -117,93 +120,69 @@ export function Webhooks({ filter = '' }: { filter?: string } = {}) {
         .filter((g) => g.items.length > 0)
     : webhookGroups;
 
+  const configured = (g: (typeof webhookGroups)[number]) =>
+    g.items.filter((i) => (urls[`${g.title}/${i}`] ?? '').trim()).length;
+
   return (
-    <section className="dev-card test">
-      <TestBanner />
-      <div className="dev-body">
-        <h2>Webhooks</h2>
-        <p className="dev-desc">
-          Add your webhook URLs here. To learn how to add and manage your webhooks, read our <a href="#docs">documentation page</a>.
-        </p>
-
-        <label className="toggle-row">
-          <button role="switch" aria-checked={retry} className={`switch ${retry ? 'on' : ''}`} onClick={() => setRetry((r) => !r)}><i /></button>
-          <span>
-            <b>Enable auto-retry for failed webhook</b>
-            <small>Automatic notify for failed webhook with exponential delay. <a href="#retry">Learn more here</a></small>
-          </span>
-        </label>
-
-        <h3 className="mt">Webhook verification token</h3>
-        <p className="dev-desc">Sent with every webhook. Use the token to validate that a webhook came from our servers.</p>
-        <div className="token-row">
-          <span>Webhook Verification token</span>
-          <button className="btn outline-blue xs wide"><Eye size={12} />View Webhook Verification Token</button>
+    <section className="wh">
+      <header className="wh-head">
+        <div>
+          <h2>Per-event URLs <span className="wh-legacy">legacy</span></h2>
+          <p>One URL per event, kept for products that predate endpoint subscriptions. <a href="#docs">Documentation</a></p>
         </div>
+        <button className="btn outline xs"><Eye size={12} />Verification token</button>
+      </header>
 
-        <div className="legacy-note">
-          <b>You&apos;re viewing the legacy version of our webhook page</b>
-          <span>To manage webhook URLs of our newest features and products, switch to the latest version <a href="#latest">here</a>.</span>
-        </div>
+      <label className="wh-retry">
+        <button role="switch" aria-checked={retry} className={`switch ${retry ? 'on' : ''}`} onClick={() => setRetry((r) => !r)}><i /></button>
+        <span><b>Auto-retry failed deliveries</b> — exponential backoff, up to 24 hours</span>
+      </label>
 
-        <h3 className="mt">Webhook URL</h3>
-        <p className="dev-desc">Test your webhook URLs and check the status of the webhook resources.</p>
+      <div className="wh-groups">
+        {groups.map((g) => {
+          const isOpen = open[g.title] ?? !!q;
+          const n = configured(g);
+          return (
+            <div key={g.title} className={`wh-group ${isOpen ? 'open' : ''}`}>
+              <button className="wh-group-head" aria-expanded={isOpen} onClick={() => setOpen((o) => ({ ...o, [g.title]: !isOpen }))}>
+                <ChevronDown size={14} className="wh-caret" />
+                <span className="wh-group-name">{g.title}</span>
+                <span className="wh-count">{n ? `${n} of ${g.items.length} set` : `${g.items.length} event${g.items.length > 1 ? 's' : ''}`}</span>
+              </button>
 
-        <table className="dev-table wh">
-          <colgroup><col style={{ width: '32%' }} /><col style={{ width: '32%' }} /><col style={{ width: '10%' }} /><col /></colgroup>
-          <thead><tr><th>Product</th><th colSpan={3}>Webhook URL</th></tr></thead>
-          <tbody>
-            {groups.map((g) => (
-              <GroupRows key={g.title} g={g} urls={urls} setUrls={setUrls} results={results} save={save} checks={checks} setChecks={setChecks} />
-            ))}
-          </tbody>
-        </table>
+              {isOpen && (
+                <div className="wh-rows">
+                  {g.items.map((name) => {
+                    const key = `${g.title}/${name}`;
+                    const disabled = g.title === 'Notifications' && (name === 'Account Created' || name === 'Account Updated');
+                    const res = results[key];
+                    return (
+                      <div className="wh-row" key={key}>
+                        <span className="wh-name">{name}{disabled && <span className="wh-off">unavailable</span>}</span>
+                        <input className="wh-input" placeholder="https://example.com/webhooks" disabled={disabled}
+                          value={urls[key] ?? ''} onChange={(e) => setUrls({ ...urls, [key]: e.target.value })}
+                          onKeyDown={(e) => e.key === 'Enter' && save(key)} aria-invalid={res?.state === 'error'} />
+                        <button className="btn outline xs" disabled={disabled} onClick={() => save(key)}>
+                          {res?.state === 'testing' ? 'Testing…' : res?.state === 'ok' ? 'Saved' : 'Test & save'}
+                        </button>
+                        {res && <div className={`wh-result ${res.state}`} role="status">{res.msg}</div>}
+                      </div>
+                    );
+                  })}
+                  {g.checks?.map((c) => (
+                    <label className="wh-check" key={c.label}>
+                      <input type="checkbox" checked={checks[c.label] ?? c.checked} onChange={(e) => setChecks({ ...checks, [c.label]: e.target.checked })} />
+                      {c.label}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {!groups.length && <p className="wh-empty">No product matches that search.</p>}
       </div>
     </section>
-  );
-}
-
-function GroupRows({ g, urls, setUrls, results, save, checks, setChecks }: {
-  g: (typeof webhookGroups)[number];
-  urls: Record<string, string>; setUrls: (u: Record<string, string>) => void;
-  results: Record<string, { state: 'testing' | 'ok' | 'error'; msg: string }>; save: (k: string) => void;
-  checks: Record<string, boolean>; setChecks: (c: Record<string, boolean>) => void;
-}) {
-  return (
-    <>
-      <tr className="grp"><td colSpan={4}>{g.title}</td></tr>
-      {g.items.map((name) => {
-        const key = `${g.title}/${name}`;
-        const disabled = g.title === 'Notifications' && (name === 'Account Created' || name === 'Account Updated');
-        return (
-          <tr key={key}>
-            <td><span className="wh-name">{name}<Info size={11} strokeWidth={1.5} /></span></td>
-            <td>
-              <input className="wh-input" placeholder="http://example.com" disabled={disabled}
-                value={urls[key] ?? ''} onChange={(e) => setUrls({ ...urls, [key]: e.target.value })}
-                onKeyDown={(e) => e.key === 'Enter' && save(key)} aria-invalid={results[key]?.state === 'error'} />
-              {results[key] && <div className={`wh-result ${results[key].state}`} role="status">{results[key].msg}</div>}
-            </td>
-            <td>
-              <button className="btn primary xs wide" disabled={disabled} onClick={() => save(key)}>
-                {results[key]?.state === 'testing' ? 'Testing…' : results[key]?.state === 'ok' ? 'Saved' : 'Test and save'}
-              </button>
-            </td>
-            <td className="right"><ChevronDown size={14} strokeWidth={1.5} className="wh-chev" /></td>
-          </tr>
-        );
-      })}
-      {g.checks?.map((c) => (
-        <tr key={c.label} className="chk">
-          <td colSpan={4}>
-            <label>
-              <input type="checkbox" checked={checks[c.label] ?? c.checked} onChange={(e) => setChecks({ ...checks, [c.label]: e.target.checked })} />
-              {c.label}
-            </label>
-          </td>
-        </tr>
-      ))}
-    </>
   );
 }
 
