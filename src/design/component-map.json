@@ -6,53 +6,703 @@
     "url": "https://www.figma.com/design/UPodj9uOVyuqY5hNy8tJB2/XenDS-Component---DUPLICATED---DANIEL"
   },
   "components": {
-    "Sidebar":        { "id": "2955:18230", "type": "COMPONENT",     "page": "1229:5830", "props": ["Has footer", "Show scroll indicator"], "code": "src/components/Sidebar.tsx" },
-    "Sidebar.brand":  { "id": "2955:16781", "type": "COMPONENT_SET", "page": "1229:5830", "variants": { "Dashboard": ["Xendit", "Custom", "Whitelabel"], "State": ["Rest", "Hover"] } },
-    "Sidebar.footer": { "id": "5841:11772", "type": "COMPONENT_SET", "page": "1229:5830", "variants": { "State": ["Default", "Selected"] } },
-
-    "Menu":           { "id": "1332:5244", "type": "COMPONENT_SET", "page": "1202:5310", "variants": { "# Menu": ["1","2","3","4","5","6","7"] } },
-    "Menu.parent":    { "id": "1332:5284", "type": "COMPONENT_SET", "page": "1202:5310",
-                        "variants": { "Selected state": ["False","True"], "Hovered state": ["False","True"], "Has Submenu": ["False","True"] },
-                        "props": ["Has Tag", "Has Activity", "Has Icon", "Text", "Icon"],
-                        "code": "src/components/Sidebar.tsx :: NavItem" },
-    "Menu.child":     { "id": "1332:5353", "type": "COMPONENT_SET", "page": "1202:5310",
-                        "variants": { "Position": ["First","Middle","Last"], "Selected state": ["True","False"], "Hovered state": ["True","False"] },
-                        "code": "src/components/Sidebar.tsx :: NavItem children" },
-    "Menu.tag":       { "id": "2712:24422", "type": "COMPONENT_SET", "page": "1202:5310", "variants": { "Type": ["New", "Beta"] } },
-    "Menu.topSeparator": { "id": "2849:65087", "type": "COMPONENT_SET", "page": "1202:5310", "variants": { "Top divider": ["With title", "Spacing only"] } },
-    "Menu.btmSeparator": { "id": "2723:5625", "type": "COMPONENT_SET", "page": "1202:5310", "variants": { "Btm divider": ["With border line", "Spacing only"] } },
-
-    "Button":         { "id": "483:1724",  "type": "COMPONENT_SET", "page": "1216:12474", "variantCount": 234,
-                        "variants": { "Size": ["Medium (default)","Small"], "Role": ["Main","Neutral","Destructive"], "Style": ["Filled","Outlined","Subtle"], "Icon": ["No Icon","Left","Right"], "State": ["Rest (default)","Hovered","Pressed","Disabled","Load"] },
-                        "code": "src/developer/developer.css :: .dv-btn" },
-    "IconButton":     { "id": "505:1886",  "type": "COMPONENT_SET", "page": "1216:12474", "variants": { "Size": ["Regular","Small"], "Role": ["Main","Neutral","Destructive"], "Style": ["Filled","Outlined","Subtle"], "State": ["Rest (default)","Hovered","Pressed","Disabled"] } },
-    "PageHeader":     { "id": "3253:20681", "type": "COMPONENT_SET", "page": "1229:5831", "variants": { "Back button": ["false","true"], "Opt - Tab": ["true","false"] }, "code": "src/components/PageHeader.tsx" },
-    "BannerTestMode": { "id": "6407:15751", "type": "COMPONENT",     "page": "1229:5831" },
-    "Tabs":           { "id": "3253:20728", "type": "COMPONENT_SET", "page": "1216:12479", "variants": { "Tab count": ["2","3","4","5","6","7"] }, "code": "src/styles.css :: .tabs" },
-    "Tabs.item":      { "id": "3253:20660", "type": "COMPONENT_SET", "page": "1216:12479", "variants": { "Active?": ["false","true"], "Hovered?": ["false","true"] } },
-    "Table":          { "id": "5479:32884", "type": "COMPONENT_SET", "page": "1232:7662", "variants": { "# of Row": ["0 (Empty State)","1","5","10"] }, "code": "src/styles.css :: .table" },
-    "Tag":            { "id": "55:391",    "type": "COMPONENT_SET", "page": "1334:10434", "variants": { "Size": ["Regular","Small"], "Color": ["Warning","Success","Informative","Neutral","Destructive","Highlight"], "Has Icon": ["True","False"] } },
-    "Badge":          { "id": "55:204",    "type": "COMPONENT_SET", "page": "1216:12476", "variants": { "with Number": ["False","True"], "Hierarchy": ["High","Low"] } },
-    "Avatar":         { "id": "103:631",   "type": "COMPONENT_SET", "page": "1216:12475", "variants": { "Size": ["xs (32x32)","sm (40x40)","md (64x64)","lg (96x96)","xl (128x128)"], "Type": ["Company","Person"], "Value": ["Empty state","Text","Filled"] } },
-    "Dialog":         { "id": "6193:5837", "type": "COMPONENT_SET", "page": "1232:7661", "variants": { "Type": ["Confirmation","Forms","PIN","Feedback"], "Size": ["Small","Medium","Large"] }, "code": "src/developer/ui.tsx :: Modal" },
-    "DropdownMenu":   { "id": "4213:15961", "type": "COMPONENT",    "page": "1203:9216" },
-    "Dropdown.item":  { "id": "4235:18556", "type": "COMPONENT_SET", "page": "1203:9216", "variants": { "Type": ["WITH Leading Asset","NO Leading Asset"], "Nested Item": ["True","False"], "Selected/Hovered": ["False","True"] } },
-    "TextInput":      { "id": "3755:7179", "type": "COMPONENT_SET", "page": "1232:7665", "variants": { "State": ["Rest (default)","Hover","Active","Disabled","Error"], "Content filled?": ["True","False"] } },
-    "TextArea":       { "id": "3755:7409", "type": "COMPONENT_SET", "page": "1232:7665", "variants": { "State": ["Rest (default)","Hover","Active","Disabled","Error"] } },
-    "Checkbox":       { "id": "186:529",   "type": "COMPONENT_SET", "page": "1227:5826", "variants": { "State": ["Enabled","Error","Disabled"], "Selection": ["Checked","Indeterminate","Unchecked"] } },
-    "Radio":          { "id": "223:467",   "type": "COMPONENT_SET", "page": "1480:15674", "variants": { "State": ["Enabled","Disabled","Error"], "Selection": ["Selected","Unselected"] } },
-    "Toggle":         { "id": "264:466",   "type": "COMPONENT_SET", "page": "1480:15675", "variants": { "Switch": ["On","Off"], "State": ["Enabled","Disabled"] } },
-    "Accordion":      { "id": "7914:5270", "type": "COMPONENT_SET", "page": "1232:7663", "variants": { "Opened?": ["false","true"] }, "code": "public/apidocs :: overlay accordion" },
-    "AlertCallout":   { "id": "2727:636",  "type": "COMPONENT_SET", "page": "1227:5827", "variants": { "Importance": ["Low","Medium","High","Critical"], "Text type": ["Title + Description","Title Only","Description Only"] } },
-    "Breadcrumbs":    { "id": "2447:3982", "type": "COMPONENT_SET", "page": "1216:12478", "variants": { "# of level": ["2","3","4","5"] } },
-    "Tooltip":        { "id": "7760:8776", "type": "COMPONENT",     "page": "1234:1746" },
-    "FilterChip":     { "id": "7915:18117", "type": "COMPONENT_SET", "page": "7915:9262", "variants": { "State": ["Active","Resting"], "Filters Applied": ["False","True"], "isHovered": ["False","True"] } },
-    "SegmentedControl": { "id": "8983:1636", "type": "COMPONENT",   "page": "8983:1331" },
-    "Stepper":        { "id": "1399:4271", "type": "COMPONENT_SET", "page": "1227:5828", "variants": { "Direction": ["Horizontal","Vertical"], "Type": ["Stepper with text","Stepper only","Progress Bar"] } },
-    "Skeleton":       { "id": "3542:38945", "type": "COMPONENT_SET", "page": "1482:15677", "variants": { "Motion State": ["Initial","End"], "Corner Radius": ["Default","Circular"] } },
-    "ToggleCard":     { "id": "8443:49",   "type": "COMPONENT_SET", "page": "8442:2", "variants": { "State": ["Not Selected","Selected"], "Hovered": ["True","False"] } },
-    "DatePicker":     { "id": "8885:3532", "type": "COMPONENT",     "page": "8885:925" },
-    "TimePicker":     { "id": "8931:9832", "type": "COMPONENT_SET", "page": "8885:212" },
-    "Slot":           { "id": "6182:1681", "type": "COMPONENT_SET", "page": "6182:78", "variants": { "Slot count": ["2","3","4"] } }
+    "Sidebar": {
+      "id": "2955:18230",
+      "type": "COMPONENT",
+      "page": "1229:5830",
+      "props": [
+        "Has footer",
+        "Show scroll indicator"
+      ],
+      "code": "src/components/Sidebar.tsx"
+    },
+    "Sidebar.brand": {
+      "id": "2955:16781",
+      "type": "COMPONENT_SET",
+      "page": "1229:5830",
+      "variants": {
+        "Dashboard": [
+          "Xendit",
+          "Custom",
+          "Whitelabel"
+        ],
+        "State": [
+          "Rest",
+          "Hover"
+        ]
+      }
+    },
+    "Sidebar.footer": {
+      "id": "5841:11772",
+      "type": "COMPONENT_SET",
+      "page": "1229:5830",
+      "variants": {
+        "State": [
+          "Default",
+          "Selected"
+        ]
+      }
+    },
+    "Menu": {
+      "id": "1332:5244",
+      "type": "COMPONENT_SET",
+      "page": "1202:5310",
+      "variants": {
+        "# Menu": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7"
+        ]
+      }
+    },
+    "Menu.parent": {
+      "id": "1332:5284",
+      "type": "COMPONENT_SET",
+      "page": "1202:5310",
+      "variants": {
+        "Selected state": [
+          "False",
+          "True"
+        ],
+        "Hovered state": [
+          "False",
+          "True"
+        ],
+        "Has Submenu": [
+          "False",
+          "True"
+        ]
+      },
+      "props": [
+        "Has Tag",
+        "Has Activity",
+        "Has Icon",
+        "Text",
+        "Icon"
+      ],
+      "code": "src/components/Sidebar.tsx :: NavItem"
+    },
+    "Menu.child": {
+      "id": "1332:5353",
+      "type": "COMPONENT_SET",
+      "page": "1202:5310",
+      "variants": {
+        "Position": [
+          "First",
+          "Middle",
+          "Last"
+        ],
+        "Selected state": [
+          "True",
+          "False"
+        ],
+        "Hovered state": [
+          "True",
+          "False"
+        ]
+      },
+      "code": "src/components/Sidebar.tsx :: NavItem children"
+    },
+    "Menu.tag": {
+      "id": "2712:24422",
+      "type": "COMPONENT_SET",
+      "page": "1202:5310",
+      "variants": {
+        "Type": [
+          "New",
+          "Beta"
+        ]
+      }
+    },
+    "Menu.topSeparator": {
+      "id": "2849:65087",
+      "type": "COMPONENT_SET",
+      "page": "1202:5310",
+      "variants": {
+        "Top divider": [
+          "With title",
+          "Spacing only"
+        ]
+      }
+    },
+    "Menu.btmSeparator": {
+      "id": "2723:5625",
+      "type": "COMPONENT_SET",
+      "page": "1202:5310",
+      "variants": {
+        "Btm divider": [
+          "With border line",
+          "Spacing only"
+        ]
+      }
+    },
+    "Button": {
+      "id": "483:1724",
+      "type": "COMPONENT_SET",
+      "page": "1216:12474",
+      "variantCount": 234,
+      "variants": {
+        "Size": [
+          "Medium (default)",
+          "Small"
+        ],
+        "Role": [
+          "Main",
+          "Neutral",
+          "Destructive"
+        ],
+        "Style": [
+          "Filled",
+          "Outlined",
+          "Subtle"
+        ],
+        "Icon": [
+          "No Icon",
+          "Left",
+          "Right"
+        ],
+        "State": [
+          "Rest (default)",
+          "Hovered",
+          "Pressed",
+          "Disabled",
+          "Load"
+        ]
+      },
+      "code": "src/developer/developer.css :: .dv-btn"
+    },
+    "IconButton": {
+      "id": "505:1886",
+      "type": "COMPONENT_SET",
+      "page": "1216:12474",
+      "variants": {
+        "Size": [
+          "Regular",
+          "Small"
+        ],
+        "Role": [
+          "Main",
+          "Neutral",
+          "Destructive"
+        ],
+        "Style": [
+          "Filled",
+          "Outlined",
+          "Subtle"
+        ],
+        "State": [
+          "Rest (default)",
+          "Hovered",
+          "Pressed",
+          "Disabled"
+        ]
+      }
+    },
+    "PageHeader": {
+      "id": "3253:20681",
+      "type": "COMPONENT_SET",
+      "page": "1229:5831",
+      "variants": {
+        "Back button": [
+          "false",
+          "true"
+        ],
+        "Opt - Tab": [
+          "true",
+          "false"
+        ]
+      },
+      "code": "src/components/PageHeader.tsx"
+    },
+    "BannerTestMode": {
+      "id": "6407:15751",
+      "type": "COMPONENT",
+      "page": "1229:5831"
+    },
+    "Tabs": {
+      "id": "3253:20728",
+      "type": "COMPONENT_SET",
+      "page": "1216:12479",
+      "variants": {
+        "Tab count": [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7"
+        ]
+      },
+      "code": "src/styles.css :: .tabs"
+    },
+    "Tabs.item": {
+      "id": "3253:20660",
+      "type": "COMPONENT_SET",
+      "page": "1216:12479",
+      "variants": {
+        "Active?": [
+          "false",
+          "true"
+        ],
+        "Hovered?": [
+          "false",
+          "true"
+        ]
+      }
+    },
+    "Table": {
+      "id": "5479:32884",
+      "type": "COMPONENT_SET",
+      "page": "1232:7662",
+      "variants": {
+        "# of Row": [
+          "0 (Empty State)",
+          "1",
+          "5",
+          "10"
+        ]
+      },
+      "code": "src/styles.css :: .table"
+    },
+    "Tag": {
+      "id": "55:391",
+      "type": "COMPONENT_SET",
+      "page": "1334:10434",
+      "variants": {
+        "Size": [
+          "Regular",
+          "Small"
+        ],
+        "Color": [
+          "Warning",
+          "Success",
+          "Informative",
+          "Neutral",
+          "Destructive",
+          "Highlight"
+        ],
+        "Has Icon": [
+          "True",
+          "False"
+        ]
+      }
+    },
+    "Badge": {
+      "id": "55:204",
+      "type": "COMPONENT_SET",
+      "page": "1216:12476",
+      "variants": {
+        "with Number": [
+          "False",
+          "True"
+        ],
+        "Hierarchy": [
+          "High",
+          "Low"
+        ]
+      }
+    },
+    "Avatar": {
+      "id": "103:631",
+      "type": "COMPONENT_SET",
+      "page": "1216:12475",
+      "variants": {
+        "Size": [
+          "xs (32x32)",
+          "sm (40x40)",
+          "md (64x64)",
+          "lg (96x96)",
+          "xl (128x128)"
+        ],
+        "Type": [
+          "Company",
+          "Person"
+        ],
+        "Value": [
+          "Empty state",
+          "Text",
+          "Filled"
+        ]
+      }
+    },
+    "Dialog": {
+      "id": "6193:5837",
+      "type": "COMPONENT_SET",
+      "page": "1232:7661",
+      "variants": {
+        "Type": [
+          "Confirmation",
+          "Forms",
+          "PIN",
+          "Feedback"
+        ],
+        "Size": [
+          "Small",
+          "Medium",
+          "Large"
+        ]
+      },
+      "code": "src/developer/ui.tsx :: Modal"
+    },
+    "DropdownMenu": {
+      "id": "4213:15961",
+      "type": "COMPONENT",
+      "page": "1203:9216"
+    },
+    "Dropdown.item": {
+      "id": "4235:18556",
+      "type": "COMPONENT_SET",
+      "page": "1203:9216",
+      "variants": {
+        "Type": [
+          "WITH Leading Asset",
+          "NO Leading Asset"
+        ],
+        "Nested Item": [
+          "True",
+          "False"
+        ],
+        "Selected/Hovered": [
+          "False",
+          "True"
+        ]
+      }
+    },
+    "TextInput": {
+      "id": "3755:7179",
+      "type": "COMPONENT_SET",
+      "page": "1232:7665",
+      "variants": {
+        "State": [
+          "Rest (default)",
+          "Hover",
+          "Active",
+          "Disabled",
+          "Error"
+        ],
+        "Content filled?": [
+          "True",
+          "False"
+        ]
+      }
+    },
+    "TextArea": {
+      "id": "3755:7409",
+      "type": "COMPONENT_SET",
+      "page": "1232:7665",
+      "variants": {
+        "State": [
+          "Rest (default)",
+          "Hover",
+          "Active",
+          "Disabled",
+          "Error"
+        ]
+      }
+    },
+    "Checkbox": {
+      "id": "186:529",
+      "type": "COMPONENT_SET",
+      "page": "1227:5826",
+      "variants": {
+        "State": [
+          "Enabled",
+          "Error",
+          "Disabled"
+        ],
+        "Selection": [
+          "Checked",
+          "Indeterminate",
+          "Unchecked"
+        ]
+      }
+    },
+    "Radio": {
+      "id": "223:467",
+      "type": "COMPONENT_SET",
+      "page": "1480:15674",
+      "variants": {
+        "State": [
+          "Enabled",
+          "Disabled",
+          "Error"
+        ],
+        "Selection": [
+          "Selected",
+          "Unselected"
+        ]
+      }
+    },
+    "Toggle": {
+      "id": "264:466",
+      "type": "COMPONENT_SET",
+      "page": "1480:15675",
+      "variants": {
+        "Switch": [
+          "On",
+          "Off"
+        ],
+        "State": [
+          "Enabled",
+          "Disabled"
+        ]
+      }
+    },
+    "Accordion": {
+      "id": "7914:5270",
+      "type": "COMPONENT_SET",
+      "page": "1232:7663",
+      "variants": {
+        "Opened?": [
+          "false",
+          "true"
+        ]
+      },
+      "code": "public/apidocs :: overlay accordion"
+    },
+    "AlertCallout": {
+      "id": "2727:636",
+      "type": "COMPONENT_SET",
+      "page": "1227:5827",
+      "variants": {
+        "Importance": [
+          "Low",
+          "Medium",
+          "High",
+          "Critical"
+        ],
+        "Text type": [
+          "Title + Description",
+          "Title Only",
+          "Description Only"
+        ]
+      }
+    },
+    "Breadcrumbs": {
+      "id": "2447:3982",
+      "type": "COMPONENT_SET",
+      "page": "1216:12478",
+      "variants": {
+        "# of level": [
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
+      }
+    },
+    "Tooltip": {
+      "id": "7760:8776",
+      "type": "COMPONENT",
+      "page": "1234:1746"
+    },
+    "FilterChip": {
+      "id": "7915:18117",
+      "type": "COMPONENT_SET",
+      "page": "7915:9262",
+      "variants": {
+        "State": [
+          "Active",
+          "Resting"
+        ],
+        "Filters Applied": [
+          "False",
+          "True"
+        ],
+        "isHovered": [
+          "False",
+          "True"
+        ]
+      }
+    },
+    "SegmentedControl": {
+      "id": "8983:1636",
+      "type": "COMPONENT",
+      "page": "8983:1331"
+    },
+    "Stepper": {
+      "id": "1399:4271",
+      "type": "COMPONENT_SET",
+      "page": "1227:5828",
+      "variants": {
+        "Direction": [
+          "Horizontal",
+          "Vertical"
+        ],
+        "Type": [
+          "Stepper with text",
+          "Stepper only",
+          "Progress Bar"
+        ]
+      }
+    },
+    "Skeleton": {
+      "id": "3542:38945",
+      "type": "COMPONENT_SET",
+      "page": "1482:15677",
+      "variants": {
+        "Motion State": [
+          "Initial",
+          "End"
+        ],
+        "Corner Radius": [
+          "Default",
+          "Circular"
+        ]
+      }
+    },
+    "ToggleCard": {
+      "id": "8443:49",
+      "type": "COMPONENT_SET",
+      "page": "8442:2",
+      "variants": {
+        "State": [
+          "Not Selected",
+          "Selected"
+        ],
+        "Hovered": [
+          "True",
+          "False"
+        ]
+      }
+    },
+    "DatePicker": {
+      "id": "8885:3532",
+      "type": "COMPONENT",
+      "page": "8885:925"
+    },
+    "TimePicker": {
+      "id": "8931:9832",
+      "type": "COMPONENT_SET",
+      "page": "8885:212"
+    },
+    "Slot": {
+      "id": "6182:1681",
+      "type": "COMPONENT_SET",
+      "page": "6182:78",
+      "variants": {
+        "Slot count": [
+          "2",
+          "3",
+          "4"
+        ]
+      }
+    }
+  },
+  "$usage": {
+    "variantMap": "src/design/variant-map.json holds the exact variant property names, options, defaults and code aliases. Read it before instantiating anything.",
+    "order": [
+      "1. Look the component up here to get its node id.",
+      "2. Look it up in variant-map.json; translate code prop values through code_aliases.",
+      "3. Check the combination exists in properties; fill anything missing from defaults.",
+      "4. figma_instantiate_component with the id, then figma_set_instance_properties with the exact names.",
+      "5. If a component is missing from both files, run figma_analyze_component_set and add it here."
+    ]
+  },
+  "codeIndex": {
+    ".dv-btn": {
+      "component": "Button",
+      "id": "483:1724",
+      "file": "src/developer/developer.css"
+    },
+    ".dv-x, .dv-copy, .icon-btn": {
+      "component": "IconButton",
+      "id": "505:1886",
+      "file": null
+    },
+    ".nav-item": {
+      "component": "Menu.parent",
+      "id": "1332:5284",
+      "file": "src/components/Sidebar.tsx"
+    },
+    ".nav-item.sub": {
+      "component": "Menu.child",
+      "id": "1332:5353",
+      "file": null
+    },
+    ".badge-s, .ev-badge, .dv-chip, .menu-tag": {
+      "component": "Tag",
+      "id": "55:391",
+      "file": null
+    },
+    ".menu-dot": {
+      "component": "Badge",
+      "id": "55:204",
+      "file": null
+    },
+    "input, .dv-input, .dv-ta": {
+      "component": "TextInput",
+      "id": "3755:7179",
+      "file": null
+    },
+    "input[type=checkbox]": {
+      "component": "Checkbox",
+      "id": "186:529",
+      "file": null
+    },
+    ".toggle, .switch": {
+      "component": "Toggle",
+      "id": "264:466",
+      "file": null
+    },
+    ".tabs button[role=tab]": {
+      "component": "Tabs.item",
+      "id": "3253:20660",
+      "file": "src/pages/Developer.tsx"
+    },
+    ".page-header": {
+      "component": "PageHeader",
+      "id": "3253:20681",
+      "file": "src/components/PageHeader.tsx"
+    },
+    ".dv-modal": {
+      "component": "Dialog",
+      "id": "6193:5837",
+      "file": "src/developer/ui.tsx"
+    },
+    ".org-menu button, .dv-select option": {
+      "component": "Dropdown.item",
+      "id": "4235:18556",
+      "file": null
+    },
+    ".try-fail, .try-status, .dv-err, .try-locked": {
+      "component": "AlertCallout",
+      "id": "2727:636",
+      "file": null
+    },
+    "details.try-details": {
+      "component": "Accordion",
+      "id": "7914:5270",
+      "file": null
+    },
+    "[title]": {
+      "component": "Tooltip",
+      "id": "7760:8776",
+      "file": null
+    },
+    ".dt-crumb": {
+      "component": "Breadcrumbs",
+      "id": "2447:3982",
+      "file": "src/pages/DesignTokens.tsx"
+    },
+    ".try-picker": {
+      "component": "SegmentedControl",
+      "id": "8983:1636",
+      "file": "src/pages/Developer.tsx"
+    },
+    ".org-logo": {
+      "component": "Avatar",
+      "id": "103:631",
+      "file": null
+    },
+    ".dv-table, .ev-table": {
+      "component": "Table",
+      "id": "5479:32884",
+      "file": "src/pages/Developer.tsx"
+    }
   }
 }

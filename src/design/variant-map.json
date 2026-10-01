@@ -1,0 +1,292 @@
+{
+  "$comment": [
+    "Exact Figma property names and values for instantiating XenDS components from code.",
+    "Property names are case-sensitive and must be passed verbatim, including the '#id' suffix on",
+    "non-variant props (TEXT, BOOLEAN, INSTANCE_SWAP) — setInstanceProperties fails silently otherwise.",
+    "'code_aliases' translates this codebase's prop values to the Figma option; 'defaults' fills in",
+    "any variant property the call does not set.",
+    "Watch out: the file is not consistent about boolean casing. Tab and Page Header use lowercase",
+    "'true'/'false', Menu and Filter Chip use capitalised 'True'/'False', and Toggle uses 'Yes'/'No'.",
+    "Always read the options below rather than assuming."
+  ],
+
+  "Button": {
+    "id": "483:1724",
+    "variantCount": 234,
+    "properties": {
+      "Size": ["Medium (default)", "Small"],
+      "Role": ["Main", "Neutral", "Destructive"],
+      "Style": ["Filled", "Outlined", "Subtle"],
+      "Icon": ["No Icon", "Left", "Right"],
+      "State": ["Rest (default)", "Hovered", "Pressed", "Disabled", "Load"]
+    },
+    "defaults": { "Size": "Medium (default)", "Role": "Neutral", "Style": "Outlined", "Icon": "No Icon", "State": "Rest (default)" },
+    "code_aliases": {
+      "Size": { "sm": "Small", "md": "Medium (default)", "default": "Medium (default)" },
+      "Role": { "primary": "Main", "danger": "Destructive", "neutral": "Neutral" },
+      "Style": { "primary": "Filled", "default": "Outlined", "subtle": "Subtle", "outline": "Outlined" },
+      "State": { "disabled": "Disabled", "loading": "Load", "hover": "Hovered" }
+    },
+    "code": { "selector": ".dv-btn", "file": "src/developer/developer.css",
+      "rules": "`.primary` → Role=Main + Style=Filled; `.danger` → Role=Destructive + Style=Filled; `.subtle` → Style=Subtle; `.sm` → Size=Small; a leading lucide icon → Icon=Left" }
+  },
+
+  "IconButton": {
+    "id": "505:1886",
+    "variantCount": 72,
+    "properties": {
+      "Size": ["Regular", "Small"],
+      "Role": ["Main", "Neutral", "Destructive"],
+      "Style": ["Filled", "Outlined", "Subtle"],
+      "State": ["Rest (default)", "Hovered", "Pressed", "Disabled"]
+    },
+    "defaults": { "Size": "Regular", "Role": "Neutral", "Style": "Subtle", "State": "Rest (default)" },
+    "code": { "selector": ".dv-x, .dv-copy, .icon-btn" }
+  },
+
+  "Menu.parent": {
+    "id": "1332:5284",
+    "variantCount": 8,
+    "properties": {
+      "Selected state": ["False", "True"],
+      "Hovered state": ["False", "True"],
+      "Has Submenu": ["False", "True"]
+    },
+    "instanceProperties": {
+      "Has Tag#1273:17": "BOOLEAN",
+      "Has Activity#2706:0": "BOOLEAN",
+      "Has Icon#4047:4": "BOOLEAN",
+      "Text#4047:5": "TEXT",
+      "Icon#4047:6": "INSTANCE_SWAP"
+    },
+    "defaults": { "Selected state": "False", "Hovered state": "False", "Has Submenu": "False" },
+    "code_aliases": { "Selected state": { "active": "True", "true": "True", "false": "False" } },
+    "code": { "selector": ".nav-item", "file": "src/components/Sidebar.tsx",
+      "rules": "NavLink isActive → Selected state=True; item.children present → Has Submenu=True; label → Text#4047:5" }
+  },
+
+  "Menu.child": {
+    "id": "1332:5353",
+    "variantCount": 12,
+    "properties": {
+      "Position": ["First", "Middle", "Last"],
+      "Selected state": ["True", "False"],
+      "Hovered state": ["True", "False"]
+    },
+    "defaults": { "Position": "Middle", "Selected state": "False", "Hovered state": "False" },
+    "code": { "selector": ".nav-item.sub" }
+  },
+
+  "Tag": {
+    "id": "55:391",
+    "variantCount": 18,
+    "properties": {
+      "Size": ["Regular", "Small"],
+      "Color": ["Warning", "Success", "Informative", "Neutral", "Destructive", "Highlight"],
+      "Has Icon": ["True", "False"]
+    },
+    "instanceProperties": { "Text#102:0": "TEXT", "Icon Instance#109:16": "INSTANCE_SWAP" },
+    "defaults": { "Size": "Regular", "Color": "Neutral", "Has Icon": "False" },
+    "code_aliases": {
+      "Color": { "ok": "Success", "success": "Success", "bad": "Destructive", "failed": "Destructive",
+                 "error": "Destructive", "warn": "Warning", "pending": "Warning", "info": "Informative", "neutral": "Neutral" }
+    },
+    "code": { "selector": ".badge-s, .ev-badge, .dv-chip, .menu-tag",
+      "rules": "Status pills map by tone: Succeeded → Success, Failed → Destructive, Pending → Warning" },
+    "spec": { "h": 20, "pad": "2/4/2/4", "radius": 4, "gap": 4, "text": "12/16 Medium" }
+  },
+
+  "Badge": {
+    "id": "55:204",
+    "variantCount": 4,
+    "properties": { "with Number": ["False", "True"], "Hierarchy": ["High", "Low"] },
+    "instanceProperties": { "Count#103:2": "TEXT" },
+    "defaults": { "with Number": "False", "Hierarchy": "High" },
+    "code": { "selector": ".menu-dot" },
+    "spec": { "h": 16, "pad": "2/4/2/4", "radius": 999, "fill": "xds-color-background/critical/default", "text": "10/12 Semi Bold on text/inverse" }
+  },
+
+  "TextInput": {
+    "id": "3755:7179",
+    "variantCount": 10,
+    "properties": {
+      "State": ["Rest (default)", "Hover", "Active", "Disabled", "Error"],
+      "Content filled?": ["True", "False"]
+    },
+    "instanceProperties": { "Content#1727:7": "TEXT", "Inline leading#1727:8": "BOOLEAN", "Inline trailing#4035:25": "BOOLEAN" },
+    "defaults": { "State": "Rest (default)", "Content filled?": "False" },
+    "code_aliases": { "State": { "focus": "Active", "focused": "Active", "invalid": "Error", "disabled": "Disabled" } },
+    "code": { "selector": "input, .dv-input, .dv-ta",
+      "rules": "value non-empty → Content filled?=True; aria-invalid → State=Error" },
+    "spec": { "h": 40, "radius": 4, "fill": "xds-color-background/default", "stroke": "xds-color-border/default", "text": "14/16 Regular, placeholder text/weak" }
+  },
+
+  "Checkbox": {
+    "id": "186:529",
+    "variantCount": 14,
+    "properties": {
+      "State": ["Enabled", "Error", "Disabled"],
+      "Selection": ["Checked", "Indeterminate", "Unchecked"],
+      "Use Label": ["False", "True"]
+    },
+    "instanceProperties": { "Label#186:0": "TEXT" },
+    "defaults": { "State": "Enabled", "Selection": "Unchecked", "Use Label": "False" },
+    "code_aliases": { "Selection": { "true": "Checked", "false": "Unchecked", "mixed": "Indeterminate" } },
+    "code": { "selector": "input[type=checkbox]" },
+    "spec": { "box": "16x16", "radius": 2, "checkedFill": "xds-color-background/accent/default" }
+  },
+
+  "Toggle": {
+    "id": "264:466",
+    "variantCount": 12,
+    "properties": {
+      "Switch": ["On", "Off"],
+      "Use label?": ["Yes", "No"],
+      "State": ["Enabled", "Disabled"],
+      "Use description": ["Yes", "No"]
+    },
+    "instanceProperties": { "Label text#264:0": "TEXT", "Description text#264:10": "TEXT" },
+    "defaults": { "Switch": "Off", "Use label?": "No", "State": "Enabled", "Use description": "No" },
+    "code_aliases": { "Switch": { "true": "On", "false": "Off" }, "Use label?": { "true": "Yes", "false": "No" } },
+    "code": { "selector": ".toggle, .switch", "note": "Use label?/Use description take Yes/No, not True/False" },
+    "spec": { "track": "36x24" }
+  },
+
+  "Tabs.item": {
+    "id": "3253:20660",
+    "variantCount": 4,
+    "properties": { "Active?": ["false", "true"], "Hovered?": ["false", "true"] },
+    "instanceProperties": { "Additional elements#3633:0": "BOOLEAN" },
+    "defaults": { "Active?": "false", "Hovered?": "false" },
+    "code_aliases": { "Active?": { "active": "true", "True": "true" } },
+    "code": { "selector": ".tabs button[role=tab]", "file": "src/pages/Developer.tsx",
+      "rules": "aria-selected → Active?=true. Note the lowercase option values." },
+    "spec": { "h": 40, "gap": 8, "text": "14/16 Regular, rest colour text/weak" }
+  },
+
+  "Tabs": { "id": "3253:20728", "properties": { "Tab count": ["2", "3", "4", "5", "6", "7"] },
+    "defaults": { "Tab count": "5" },
+    "code": { "note": "The Developer area has five tabs — Guides, Try, API keys, Webhooks, Events." } },
+
+  "PageHeader": {
+    "id": "3253:20681",
+    "variantCount": 4,
+    "properties": { "Back button": ["false", "true"], "Opt - Tab": ["true", "false"] },
+    "instanceProperties": { "Opt - Breadcrumb#66:0": "BOOLEAN", "Opt - Button#114:11": "BOOLEAN", "Show info#399:0": "BOOLEAN", "Page Title#6409:0": "TEXT" },
+    "defaults": { "Back button": "false", "Opt - Tab": "false" },
+    "code": { "selector": ".page-header", "file": "src/components/PageHeader.tsx",
+      "rules": "children present → Opt - Tab=true; title → Page Title#6409:0" },
+    "spec": { "h": 88, "pad": "32/0/0/0" }
+  },
+
+  "Dialog": {
+    "id": "6193:5837",
+    "variantCount": 10,
+    "properties": {
+      "Type": ["Confirmation", "Forms", "PIN", "Feedback"],
+      "Size": ["Small", "Medium", "Large"]
+    },
+    "instanceProperties": { "Show Forgot PIN#7963:0": "BOOLEAN" },
+    "defaults": { "Type": "Forms", "Size": "Medium" },
+    "code": { "selector": ".dv-modal", "file": "src/developer/ui.tsx",
+      "rules": "Modal width 640 → Size=Medium, 680+ → Large; a modal with inputs → Type=Forms" },
+    "spec": { "radius": 8, "fill": "xds-color-background/default", "stroke": "xds-color-border/default", "title": "18/24 Semi Bold" }
+  },
+
+  "Dropdown.item": {
+    "id": "4235:18556",
+    "variantCount": 8,
+    "properties": {
+      "Type": ["WITH Leading Asset", "NO Leading Asset"],
+      "Nested Item": ["True", "False"],
+      "Selected/Hovered": ["False", "True"]
+    },
+    "defaults": { "Type": "NO Leading Asset", "Nested Item": "False", "Selected/Hovered": "False" },
+    "code": { "selector": ".org-menu button, .dv-select option" },
+    "spec": { "h": 32, "w": 248, "text": "12/16 Regular" }
+  },
+
+  "AlertCallout": {
+    "id": "2727:636",
+    "variantCount": 12,
+    "properties": {
+      "Importance": ["Low", "Medium", "High", "Critical"],
+      "Text type": ["Title + Description", "Title Only", "Description Only"],
+      "Type": ["Compact"]
+    },
+    "instanceProperties": { "Dismissible#3438:7": "BOOLEAN", "Icon#3438:12": "BOOLEAN", "Button#3438:24": "BOOLEAN" },
+    "defaults": { "Importance": "Low", "Text type": "Title + Description", "Type": "Compact" },
+    "code_aliases": { "Importance": { "info": "Low", "warn": "Medium", "warning": "Medium", "error": "Critical", "bad": "Critical", "high": "High" } },
+    "code": { "selector": ".try-fail, .try-status, .dv-err, .try-locked",
+      "rules": "try-fail → Importance=Critical; try-status.pending → Medium; try-locked → Low" },
+    "spec": { "pad": "12/12/12/12", "radius": 4 }
+  },
+
+  "Accordion": {
+    "id": "7914:5270",
+    "variantCount": 2,
+    "properties": { "Opened?": ["false", "true"], "Hovered?": ["false"] },
+    "defaults": { "Opened?": "false", "Hovered?": "false" },
+    "code": { "selector": "details.try-details", "rules": "open attribute → Opened?=true" },
+    "spec": { "headerH": 52, "title": "14/20 Semi Bold", "divider": "xds-color-border/default" }
+  },
+
+  "Tooltip": {
+    "id": "7760:8776",
+    "variantCount": 1,
+    "instanceProperties": { "Text#7804:1": "TEXT" },
+    "code": { "selector": "[title]" },
+    "spec": { "h": 32, "pad": "8/12/8/12", "radius": 4, "fill": "xds-color-background/inverse", "text": "12/16 Regular on text/inverse" }
+  },
+
+  "Breadcrumbs": {
+    "id": "2447:3982",
+    "variantCount": 4,
+    "properties": { "# of level": ["2", "3", "4", "5"] },
+    "defaults": { "# of level": "2" },
+    "code": { "selector": ".dt-crumb", "file": "src/pages/DesignTokens.tsx" },
+    "spec": { "h": 24, "gap": 4, "text": "12/16 Regular, link colour text/accent" }
+  },
+
+  "SegmentedControl": {
+    "id": "8983:1636",
+    "variantCount": 1,
+    "code": { "selector": ".try-picker", "file": "src/pages/Developer.tsx",
+      "note": "The Try case picker is closest to this, though it renders as pills rather than a segmented track." },
+    "spec": { "h": 44, "pad": "2/2/2/2", "radius": 4, "fill": "xds-color-background/weak", "stroke": "xds-color-border/default" }
+  },
+
+  "Avatar": {
+    "id": "103:631",
+    "variantCount": 30,
+    "properties": {
+      "Size": ["xs (32x32)", "sm (40x40)", "md (64x64)", "lg (96x96)", "xl (128x128)"],
+      "Type": ["Company", "Person"],
+      "Value": ["Empty state", "Text", "Filled"]
+    },
+    "instanceProperties": { "Company Initial#103:5": "TEXT", "Person Initial#103:36": "TEXT" },
+    "defaults": { "Size": "xs (32x32)", "Type": "Company", "Value": "Empty state" },
+    "code": { "selector": ".org-logo", "rules": "32px logo → Size=xs (32x32), Type=Company" }
+  },
+
+  "Table": {
+    "id": "5479:32884",
+    "variantCount": 4,
+    "properties": { "# of Row": ["0 (Empty State)", "1", "5", "10"] },
+    "instanceProperties": {
+      "$note": "Columns and headers are INSTANCE_SWAP slots, 'Column 1#5479:9' … 'Column 10#5479:0' and 'Header 1#5514:0' … 'Header 10#5514:27'. Swap in the cell components from the Table page rather than drawing cells.",
+      "Selectable Row#5515:6": "BOOLEAN", "Footer#5529:0": "BOOLEAN", "Title#5531:3": "BOOLEAN", "[TBD] Filter Toolbar#5537:0": "BOOLEAN"
+    },
+    "cellComponents": {
+      "text": "5484:32728  (.01 TEXT — DATA TYPE: Text only | with Icon | with Logo | with Avatar)",
+      "asset": "5484:32908  (.02 ASSET — Asset Type: Icon | Button | Icon Button | Tag | Input | Toggle)",
+      "headerText": "5492:33061 (.01 HEADER — Alignment, Can Sort)",
+      "headerAsset": "5505:37417 (.02 HEADER — Alignment)",
+      "selectableRow": "5515:35319",
+      "sort": "5505:37292 (Default | Ascending | Descending)"
+    },
+    "defaults": { "# of Row": "5" },
+    "code": { "selector": ".dv-table, .ev-table", "file": "src/pages/Developer.tsx",
+      "rules": "Row count snaps to the nearest option: an empty table → '0 (Empty State)', 1 row → '1', 2–7 → '5', 8+ → '10'. A checkbox column → Selectable Row=true." }
+  }
+}
