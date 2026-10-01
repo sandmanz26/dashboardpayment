@@ -1,5 +1,5 @@
 /** Small linear workflow diagram for a Try case: request → processing → one node per outcome. */
-export interface FlowStep { label: string; sub?: string }
+export interface FlowStep { id: string; label: string; sub?: string }
 export interface FlowOutcome { id: string; label: string; tone: 'ok' | 'bad' }
 
 const W = 168, H = 56, GAP = 38;
@@ -35,7 +35,11 @@ export default function CaseFlow({ steps, outcomes, active, onPick }: {
       })}
 
       {steps.map((s, i) => (
-        <g key={s.label} className="cf-node step">
+        <g key={s.id} className={`cf-node step ${active === s.id ? 'on' : ''}`}
+          role={onPick ? 'button' : undefined} tabIndex={onPick ? 0 : undefined}
+          aria-pressed={onPick ? active === s.id : undefined} aria-label={s.label}
+          onClick={() => onPick?.(s.id)}
+          onKeyDown={(e) => { if (onPick && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onPick(s.id); } }}>
           <rect x={i * (W + GAP)} y={rowY} width={W} height={H} rx="9" />
           <text className="t1" x={i * (W + GAP) + W / 2} y={s.sub ? rowY + 24 : rowY + 33} textAnchor="middle">{s.label}</text>
           {s.sub && <text className="t2" x={i * (W + GAP) + W / 2} y={rowY + 40} textAnchor="middle">{s.sub}</text>}

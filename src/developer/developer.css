@@ -277,12 +277,19 @@ a.dv-btn.primary { color: #fff; }
 .cl-list { list-style: none; margin: 20px 0 0; padding: 0 0 0 16px; border-left: 2px solid #e5e7eb; }
 .cl-list > li { position: relative; margin-bottom: 28px; }
 .cl-list > li::before { content: ''; position: absolute; left: -22px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--blue, #2563eb); }
-.cl-list h3 { margin: 6px 0; font-size: 15px; font-weight: 600; }
-.cl-list ul { margin: 0; padding-left: 18px; color: #475569; font-size: 13.5px; line-height: 1.6; }
+.cl-list h3 { margin: 6px 0 10px; font-size: 15px; font-weight: 600; }
 .cl-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #64748b; }
-.cl-kind { padding: 1px 8px; border-radius: 999px; font-weight: 600; font-size: 11px; background: #e0ecff; color: #1d4ed8; }
-.cl-kind.improved { background: #fef3c7; color: #92400e; }
+.cl-ver { font-family: var(--mono); font-size: 12px; color: #101828; }
+.cl-changes { list-style: none; margin: 0; padding: 0; }
+.cl-changes > li { margin-bottom: 12px; }
+.cl-changes p { margin: 4px 0 0; color: #475569; font-size: 13.5px; line-height: 1.6; }
+.cl-ep { margin-left: 6px; font-family: var(--mono); font-size: 12px; color: #344054; background: #f2f4f7; padding: 1px 6px; border-radius: 4px; }
+.cl-kind { display: inline-block; padding: 1px 8px; border-radius: 999px; font-weight: 600; font-size: 11px; background: #e0ecff; color: #1d4ed8; }
+.cl-kind.breaking { background: #fde0dd; color: #a4271d; }
+.cl-kind.changed { background: #fef3c7; color: #92400e; }
+.cl-kind.deprecated { background: #f2f4f7; color: #475467; }
 .cl-kind.fixed { background: #dcfce7; color: #166534; }
+.cl-foot { margin-top: 24px; font-size: 12.5px; }
 
 /* Guides cards */
 .dv-cards { display: grid; grid-template-columns: 1fr 1fr; }
@@ -316,3 +323,6 @@ a.dv-btn.primary { color: #fff; }
 .cf-edge-g.on .cf-edge { stroke: #2563eb; stroke-width: 2; }
 .cf-lbl { font-size: 11px; fill: #667085; }
 .cf-edge-g.on .cf-lbl { fill: #2563eb; }
+.cf-node.step { cursor: pointer; }
+.cf-node.step.on rect { stroke: #2563eb; stroke-width: 2.5; fill: #f4f8ff; }
+.cf-node.step:focus-visible rect { outline: 2px solid var(--blue); outline-offset: 2px; }

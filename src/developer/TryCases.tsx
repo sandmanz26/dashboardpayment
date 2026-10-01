@@ -1,36 +1,60 @@
 import { useState } from 'react';
-import { BookOpen, Play, RotateCcw } from 'lucide-react';
+import { BookOpen, X } from 'lucide-react';
 import { BASE_URL, pretty } from './postman';
 import { CodeBlock } from './ui';
 import CaseFlow from './CaseFlow';
-import type { FlowStep } from './CaseFlow';
 
-/** Outcome-driven practice cases. All bodies are illustrative and fictional; check docs.xendit.co for exact wording. */
+/** Practice cases. Every value is dummy data; shapes follow the public API from memory — check docs.xendit.co. */
+interface Sample { title: string; code: unknown }
+interface Step { id: string; label: string; sub?: string; detail: string; samples: Sample[] }
 interface Outcome {
-  id: string; label: string; tone: 'ok' | 'bad';
-  status: number; response: unknown; what: string; todo?: string;
-  webhook?: { event: string; data: Record<string, unknown> };
+  id: string; label: string; tone: 'ok' | 'bad'; status: number;
+  what: string; todo?: string; response: unknown; webhook?: Record<string, unknown>;
 }
 interface Case {
-  id: string; title: string; blurb: string; method: 'POST' | 'GET'; path: string;
-  request: unknown; outcomes: Outcome[]; steps: FlowStep[]; docs?: string;
+  id: string; title: string; blurb: string; method: 'POST'; path: string; docs?: string;
+  steps: Step[]; outcomes: Outcome[];
 }
 
 const BIZ = '65f0c1e2a4b7d900123abcde';
-const hook = (event: string, data: Record<string, unknown>) => ({ event, data });
+const NOW = '2026-09-30T04:17:05.000Z';
+const hook = (event: string, data: Record<string, unknown>) => ({ event, business_id: BIZ, created: NOW, data });
 
 export const CASES: Case[] = [
   {
     id: 'payout', title: 'Send a payout', blurb: 'Pay a bank account and see what happens when it succeeds or fails.',
     method: 'POST', path: '/v2/payouts', docs: '/apidocs/get-payment',
-    steps: [{ label: 'Create payout', sub: 'POST /v2/payouts' }, { label: 'Xendit validates', sub: 'Balance and account' }, { label: 'Bank processes', sub: 'Asynchronous' }],
-    request: { reference_id: 'payout-demo-001', channel_code: 'ID_BCA', channel_properties: { account_holder_name: 'John Doe', account_number: '0000000000' }, amount: 90000, currency: 'IDR', description: 'Test payout' },
+    steps: [
+      {
+        id: 'req', label: 'Create payout', sub: 'POST /v2/payouts',
+        detail: 'You send the destination and the amount. Pick a reference_id that is unique on your side — it is how you recognise this payout later.',
+        samples: [
+          { title: 'Request · application/json', code: { reference_id: 'payout-demo-001', channel_code: 'ID_BCA', channel_properties: { account_holder_name: 'John Doe', account_number: '0000000000' }, amount: 90000, currency: 'IDR', description: 'Test payout' } },
+          { title: 'Headers', code: 'Authorization: Basic <base64 of xnd_development_•••:>\nIdempotency-key: payout-demo-001\nContent-Type: application/json' },
+        ],
+      },
+      {
+        id: 'validate', label: 'Xendit validates', sub: 'Balance and account',
+        detail: 'Xendit checks your balance and the account format before accepting. A failure here is synchronous: you get it in the response and nothing is created.',
+        samples: [
+          { title: 'Accepted · 200', code: { id: 'disb-5e8a2c71', reference_id: 'payout-demo-001', status: 'ACCEPTED', amount: 90000, currency: 'IDR', created: NOW } },
+          { title: 'Rejected · 400', code: { error_code: 'INSUFFICIENT_BALANCE', message: 'Your balance is not enough to cover this payout.' } },
+        ],
+      },
+      {
+        id: 'bank', label: 'Bank processes', sub: 'Asynchronous',
+        detail: 'ACCEPTED only means Xendit took the instruction. The bank decides afterwards, and the result reaches you as a webhook — not in the original response.',
+        samples: [
+          { title: 'Webhook · payout.succeeded', code: hook('payout.succeeded', { id: 'disb-5e8a2c71', reference_id: 'payout-demo-001', status: 'SUCCEEDED', amount: 90000, currency: 'IDR' }) },
+        ],
+      },
+    ],
     outcomes: [
-      { id: 'ok', label: 'Succeeds', tone: 'ok', status: 200, response: { id: 'disb-5e8a2c71', status: 'ACCEPTED', amount: 90000, currency: 'IDR', reference_id: 'payout-demo-001' },
+      { id: 'ok', label: 'Succeeds', tone: 'ok', status: 200, response: { id: 'disb-5e8a2c71', reference_id: 'payout-demo-001', status: 'ACCEPTED', amount: 90000, currency: 'IDR' },
         what: 'The payout was accepted, then completed at the bank.', webhook: hook('payout.succeeded', { id: 'disb-5e8a2c71', reference_id: 'payout-demo-001', status: 'SUCCEEDED', amount: 90000 }) },
       { id: 'balance', label: 'Insufficient balance', tone: 'bad', status: 400, response: { error_code: 'INSUFFICIENT_BALANCE', message: 'Your balance is not enough to cover this payout.' },
-        what: 'Nothing was sent. No webhook fires because the payout was never created.', todo: 'Top up your balance (test mode: use the balance top-up tool) and send again.' },
-      { id: 'bank', label: 'Bank rejects account', tone: 'bad', status: 200, response: { id: 'disb-5e8a2c72', status: 'ACCEPTED', amount: 90000 },
+        what: 'Nothing was sent. No webhook fires because the payout was never created.', todo: 'Top up your balance, then send again.' },
+      { id: 'bank', label: 'Bank rejects account', tone: 'bad', status: 200, response: { id: 'disb-5e8a2c72', reference_id: 'payout-demo-001', status: 'ACCEPTED', amount: 90000 },
         what: 'Accepted first, then the bank refused the account. You learn about it from the webhook, not the response.', todo: 'Verify account number and holder name, then create a new payout with a new reference_id.',
         webhook: hook('payout.failed', { id: 'disb-5e8a2c72', reference_id: 'payout-demo-001', status: 'FAILED', failure_code: 'INVALID_DESTINATION' }) },
     ],
@@ -38,8 +62,29 @@ export const CASES: Case[] = [
   {
     id: 'refund', title: 'Refund a payment', blurb: 'Return money to a customer, in full or beyond what they paid.',
     method: 'POST', path: '/refunds', docs: '/apidocs/get-payment',
-    steps: [{ label: 'Request refund', sub: 'POST /refunds' }, { label: 'Xendit checks', sub: 'Refundable amount' }, { label: 'Money returns', sub: 'Asynchronous' }],
-    request: { payment_request_id: 'pr-7d1c0f4a', reference_id: 'refund-demo-001', amount: 150000, currency: 'IDR', reason: 'REQUESTED_BY_CUSTOMER' },
+    steps: [
+      {
+        id: 'req', label: 'Request refund', sub: 'POST /refunds',
+        detail: 'Point at the payment you want to reverse. Leave out amount for a full refund, or set it for a partial one.',
+        samples: [
+          { title: 'Request · full refund', code: { payment_request_id: 'pr-7d1c0f4a', reference_id: 'refund-demo-001', currency: 'IDR', reason: 'REQUESTED_BY_CUSTOMER' } },
+          { title: 'Request · partial refund', code: { payment_request_id: 'pr-7d1c0f4a', reference_id: 'refund-demo-002', amount: 50000, currency: 'IDR', reason: 'REQUESTED_BY_CUSTOMER' } },
+        ],
+      },
+      {
+        id: 'check', label: 'Xendit checks', sub: 'Refundable amount',
+        detail: 'The refundable amount is what the customer paid minus refunds already made. Asking for more is rejected straight away.',
+        samples: [
+          { title: 'Accepted · 200', code: { id: 'rfd-2b9e1a77', payment_request_id: 'pr-7d1c0f4a', amount: 150000, currency: 'IDR', status: 'PENDING', created: NOW } },
+          { title: 'Rejected · 400', code: { error_code: 'REFUND_AMOUNT_EXCEEDS_PAYMENT', message: 'Refund amount is greater than the refundable amount.' } },
+        ],
+      },
+      {
+        id: 'settle', label: 'Money returns', sub: 'Asynchronous',
+        detail: 'PENDING becomes SUCCEEDED once the channel confirms. How long that takes depends on the channel — cards are slower than e-wallets.',
+        samples: [{ title: 'Webhook · refund.succeeded', code: hook('refund.succeeded', { id: 'rfd-2b9e1a77', payment_request_id: 'pr-7d1c0f4a', amount: 150000, currency: 'IDR', status: 'SUCCEEDED' }) }],
+      },
+    ],
     outcomes: [
       { id: 'ok', label: 'Succeeds', tone: 'ok', status: 200, response: { id: 'rfd-2b9e1a77', status: 'PENDING', amount: 150000, currency: 'IDR' },
         what: 'The refund is created as PENDING and settles shortly after.', webhook: hook('refund.succeeded', { id: 'rfd-2b9e1a77', payment_request_id: 'pr-7d1c0f4a', amount: 150000, status: 'SUCCEEDED' }) },
@@ -52,10 +97,31 @@ export const CASES: Case[] = [
   {
     id: 'decline', title: 'Payment is declined', blurb: 'A customer tries to pay and it does not go through.',
     method: 'POST', path: '/v3/payment_requests', docs: '/apidocs/get-payment',
-    steps: [{ label: 'Create request', sub: 'POST /v3/payment_requests' }, { label: 'Customer approves', sub: 'In their wallet app' }, { label: 'Xendit settles', sub: 'Result by webhook' }],
-    request: { reference_id: 'order-demo-002', type: 'PAY', country: 'ID', currency: 'IDR', request_amount: 150000, channel_code: 'OVO' },
+    steps: [
+      {
+        id: 'req', label: 'Create request', sub: 'POST /v3/payment_requests',
+        detail: 'You create the payment request. The response tells you what the customer still has to do — for an e-wallet that is approving in their app.',
+        samples: [
+          { title: 'Request · application/json', code: { reference_id: 'order-demo-002', type: 'PAY', country: 'ID', currency: 'IDR', request_amount: 150000, channel_code: 'OVO', channel_properties: { mobile_number: '+628123456789' } } },
+          { title: 'Response · 200', code: { payment_request_id: 'pr-0f3a9c1f', reference_id: 'order-demo-002', status: 'REQUIRES_ACTION', actions: [{ type: 'PRESENT_TO_CUSTOMER', descriptor: 'MOBILE_APP_APPROVAL' }] } },
+        ],
+      },
+      {
+        id: 'approve', label: 'Customer approves', sub: 'In their wallet app',
+        detail: 'Nothing happens on your side while you wait. The customer may approve, fail for lack of funds, or simply walk away.',
+        samples: [{ title: 'Poll the request', code: 'GET ' + BASE_URL + '/v3/payment_requests/pr-0f3a9c1f\n\n# Polling is a fallback. The webhook is the source of truth.' }],
+      },
+      {
+        id: 'settle', label: 'Xendit settles', sub: 'Result by webhook',
+        detail: 'Success and failure arrive the same way: a webhook. Do not mark the order paid from the original 200 response.',
+        samples: [
+          { title: 'Webhook · payment.succeeded', code: hook('payment.succeeded', { payment_id: 'py-0f3a9c21', reference_id: 'order-demo-002', status: 'SUCCEEDED', request_amount: 150000 }) },
+          { title: 'Webhook · payment.failed', code: hook('payment.failed', { payment_id: 'py-0f3a9c1f', reference_id: 'order-demo-002', status: 'FAILED', failure_code: 'INSUFFICIENT_BALANCE' }) },
+        ],
+      },
+    ],
     outcomes: [
-      { id: 'fail', label: 'Insufficient e-wallet funds', tone: 'bad', status: 200, response: { payment_request_id: 'pr-0f3a9c1f', status: 'REQUIRES_ACTION' },
+      { id: 'fail', label: 'E-wallet has no funds', tone: 'bad', status: 200, response: { payment_request_id: 'pr-0f3a9c1f', status: 'REQUIRES_ACTION' },
         what: 'The request was created, but the customer’s wallet could not cover it. The result arrives by webhook.', todo: 'Show the customer a retry option and create a new payment request.',
         webhook: hook('payment.failed', { payment_id: 'py-0f3a9c1f', reference_id: 'order-demo-002', status: 'FAILED', failure_code: 'INSUFFICIENT_BALANCE' }) },
       { id: 'expire', label: 'Customer never pays', tone: 'bad', status: 200, response: { payment_request_id: 'pr-0f3a9c20', status: 'REQUIRES_ACTION' },
@@ -68,69 +134,92 @@ export const CASES: Case[] = [
   {
     id: 'token', title: 'Verify a webhook', blurb: 'Check x-callback-token so you never trust a forged request.',
     method: 'POST', path: 'your-server/webhooks/xendit',
-    steps: [{ label: 'Xendit sends event', sub: 'With x-callback-token' }, { label: 'You verify token', sub: 'Compare with stored' }, { label: 'You deduplicate', sub: 'By webhook-id' }],
-    request: { event: 'payment.succeeded', data: { reference_id: 'order-demo-001', status: 'SUCCEEDED' } },
+    steps: [
+      {
+        id: 'recv', label: 'Xendit sends event', sub: 'With x-callback-token',
+        detail: 'Every call carries your callback token and a webhook-id. Both matter: one proves who sent it, the other tells you whether you have seen it before.',
+        samples: [
+          { title: 'Headers', code: 'x-callback-token: 8f2b1c4d9e0a7f36b5c81d2e4a90f7c3\nwebhook-id: 66a1f0c2b7e4d8001c9e5a31-wh1\ncontent-type: application/json' },
+          { title: 'Body', code: hook('payment.succeeded', { payment_id: 'py-0f3a9c21', reference_id: 'order-demo-001', status: 'SUCCEEDED', request_amount: 150000 }) },
+        ],
+      },
+      {
+        id: 'verify', label: 'You verify token', sub: 'Compare with stored',
+        detail: 'Compare the header with the token from your dashboard. Use a constant-time comparison, and refuse the request before you read the body.',
+        samples: [{ title: 'Node · express', code: `app.post('/webhooks/xendit', (req, res) => {\n  const got = req.get('x-callback-token') ?? '';\n  const want = process.env.XENDIT_CALLBACK_TOKEN;\n  if (got.length !== want.length ||\n      !crypto.timingSafeEqual(Buffer.from(got), Buffer.from(want))) {\n    return res.status(401).json({ error: 'invalid callback token' });\n  }\n  // ... deduplicate, then reply 2xx\n});` }],
+      },
+      {
+        id: 'dedupe', label: 'You deduplicate', sub: 'By webhook-id',
+        detail: 'Retries deliver the same event again, and events can arrive out of order. Store webhook-id with a unique constraint, and compare timestamps before overwriting a status.',
+        samples: [
+          { title: 'SQL', code: 'CREATE TABLE webhook_events (\n  webhook_id  text PRIMARY KEY,\n  event       text NOT NULL,\n  received_at timestamptz NOT NULL DEFAULT now()\n);\n\n-- Insert first. A conflict means you already handled it.\nINSERT INTO webhook_events (webhook_id, event)\nVALUES ($1, $2)\nON CONFLICT (webhook_id) DO NOTHING;' },
+        ],
+      },
+    ],
     outcomes: [
       { id: 'ok', label: 'Token matches', tone: 'ok', status: 200, response: { received: true }, what: 'Your handler compared the header with your stored token and accepted the event.' },
-      { id: 'bad', label: 'Token missing or wrong', tone: 'bad', status: 401, response: { error: 'invalid callback token' }, what: 'The header did not match, so your server should refuse the request and ignore the body.', todo: 'Return 401 and log it. Do not process the payload.' },
-      { id: 'dup', label: 'Same event sent twice', tone: 'ok', status: 200, response: { received: true, duplicate: true }, what: 'Retries can deliver the same event again. Your handler recognised the webhook-id and skipped re-processing.', todo: 'Store webhook-id and return 200 for ones you have seen.' },
+      { id: 'bad', label: 'Token is wrong', tone: 'bad', status: 401, response: { error: 'invalid callback token' }, what: 'The header did not match, so your server refused the request and ignored the body.', todo: 'Return 401 and log it. Do not process the payload.' },
+      { id: 'dup', label: 'Sent twice', tone: 'ok', status: 200, response: { received: true, duplicate: true }, what: 'A retry delivered the same event again. Your handler recognised the webhook-id and skipped re-processing.', todo: 'Store webhook-id and return 200 for ones you have seen.' },
     ],
   },
 ];
 
 export default function TryCases({ caseId }: { caseId: string }) {
   const c = CASES.find((x) => x.id === caseId)!;
-  const [pick, setPick] = useState<string>(c.outcomes[0].id);
-  const [ran, setRan] = useState<string | null>(null);
-  const out = c.outcomes.find((o) => o.id === ran) ?? null;
+  const [sel, setSel] = useState<string | null>(c.steps[0].id);
+
+  const step = c.steps.find((s) => s.id === sel) ?? null;
+  const out = c.outcomes.find((o) => o.id === sel) ?? null;
 
   return (
     <div className="dv-tab">
       <h2 className="dv-h1">{c.title}</h2>
-      <p className="dv-muted">{c.blurb} <b>Test mode</b> — simulated in your browser with fictional data.</p>
+      <p className="dv-muted">{c.blurb} <b>Test mode</b> — every value below is dummy data.</p>
 
-      <section className="try-panel case-panel">
-        <h4 className="try-h">Workflow</h4>
+      <div className="try-chart">
         <CaseFlow
-          steps={c.steps}
+          steps={c.steps.map((s) => ({ id: s.id, label: s.label, sub: s.sub }))}
           outcomes={c.outcomes.map((o) => ({ id: o.id, label: o.label, tone: o.tone }))}
-          active={ran ?? pick}
-          onPick={(id) => { setPick(id); setRan(null); }}
+          active={sel}
+          onPick={(id) => setSel((cur) => (cur === id ? null : id))}
         />
+        <p className="try-hint">Select any box to see its sample.</p>
+      </div>
 
-        <h4 className="try-h">1 · Request</h4>
-        <div className="try-req"><em className={`m ${c.method}`}>{c.method}</em><code>{c.path.startsWith('your') ? c.path : BASE_URL + c.path}</code></div>
-        <CodeBlock title="Body · application/json" code={pretty(c.request)} />
-        {c.docs && <a className="dv-link" href={c.docs}><BookOpen size={14} />See this endpoint in the API reference</a>}
+      {(step || out) && (
+        <section className="try-panel" aria-label="Step detail">
+          <button className="dv-x try-close" onClick={() => setSel(null)} aria-label="Close detail"><X size={16} /></button>
 
-        <h4 className="try-h">2 · Choose what happens</h4>
-        <fieldset className="try-radios" aria-label="Outcome">
-          <legend>Outcome</legend>
-          {c.outcomes.map((o) => (
-            <label key={o.id} className={pick === o.id ? 'on' : ''}>
-              <input type="radio" name={`o-${c.id}`} checked={pick === o.id} onChange={() => { setPick(o.id); setRan(null); }} />
-              <b>{o.label}</b><span>{o.tone === 'ok' ? 'Happy path' : 'Failure case'}</span>
-            </label>
-          ))}
-        </fieldset>
-        <div className="try-actions">
-          <button className="dv-btn primary" onClick={() => setRan(pick)}><Play size={14} />Run</button>
-          {ran && <button className="dv-btn" onClick={() => setRan(null)}><RotateCcw size={14} />Reset</button>}
-        </div>
+          {step && (
+            <>
+              <h3>{step.label}</h3>
+              {step.id === 'req' && <div className="try-req"><em className={`m ${c.method}`}>{c.method}</em><code>{c.path.startsWith('your') ? c.path : BASE_URL + c.path}</code></div>}
+              <p>{step.detail}</p>
+              {step.samples.map((s) => (
+                <CodeBlock key={s.title} title={s.title} code={typeof s.code === 'string' ? s.code : pretty(s.code)} />
+              ))}
+              {c.docs && step.id === 'req' && <a className="dv-link" href={c.docs}><BookOpen size={14} />See this endpoint in the API reference</a>}
+            </>
+          )}
 
-        {out && (
-          <div className={out.tone === 'ok' ? 'try-status completed' : 'try-fail'} role="status">
-            <span className="badge-s">{out.status} · {out.label}</span>
-            <p><b>What happened:</b> {out.what}</p>
-            {out.todo && <p><b>What to do:</b> {out.todo}</p>}
-            <CodeBlock title={`Response · ${out.status}`} code={pretty(out.response)} />
-            {out.webhook
-              ? <CodeBlock title="Webhook you receive afterwards" code={pretty({ ...out.webhook, business_id: BIZ, created: '2026-09-30T04:17:05.000Z' })} />
-              : <p className="dv-muted">No webhook is sent for this outcome.</p>}
-            <p className="try-assume">Illustrative: codes and shapes follow the public API from memory — confirm in docs.xendit.co.</p>
-          </div>
-        )}
-      </section>
+          {out && (
+            <>
+              <h3>{out.label}</h3>
+              <div className={out.tone === 'ok' ? 'try-status completed' : 'try-fail'}>
+                <span className="badge-s">{out.status} · {out.tone === 'ok' ? 'Happy path' : 'Failure case'}</span>
+                <p><b>What happened:</b> {out.what}</p>
+                {out.todo && <p><b>What to do:</b> {out.todo}</p>}
+              </div>
+              <CodeBlock title={`Response · ${out.status}`} code={pretty(out.response)} />
+              {out.webhook
+                ? <CodeBlock title="Webhook you receive afterwards" code={pretty(out.webhook)} />
+                : <p className="dv-muted">No webhook is sent for this outcome.</p>}
+            </>
+          )}
+
+          <p className="try-assume">Dummy data. Codes and shapes follow the public API from memory — confirm in docs.xendit.co.</p>
+        </section>
+      )}
     </div>
   );
 }
