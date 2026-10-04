@@ -105,3 +105,46 @@ Two implementation notes worth keeping:
 
 Below 1024px the vendor has its own narrow-screen behaviour, so the handles and
 the chevron are hidden there and the original flex values are restored.
+
+## The pinned example
+
+The problem this solves: the sample payload sat inline in the article, between
+the response tabs and the field list. By the time you had scrolled to the
+thirtieth field you could no longer see what the response actually looks like,
+which is the one thing you are reading the field list to understand.
+
+The sample now lives in a pinned pane at the bottom of the right column. It
+stays on screen however far the article scrolls. The inline copy is folded away
+by default behind "Show sample inline"; hide the right column and the inline
+copy comes back automatically, so the sample is never simply lost.
+
+What makes it more than a parked code block is that the two halves talk to each
+other:
+
+- **Hover a field in the article** → its line lights up in the pinned payload and
+  the pane scrolls to it. Click the field to pin that link, so the highlight
+  survives moving the mouse away. Click again to release.
+- **Click a line in the payload** → the article scrolls to that field, expanding
+  any collapsed object on the way, and flashes it.
+
+The pane also carries the status it is showing (`200 OK`, and a plain empty
+state for the codes that publish no sample), an example picker when the response
+ships more than one, a copy button, a collapse chevron, and a grip to drag its
+height. Height and collapsed state persist with the rest of the layout.
+
+Payload lines are numbered and lightly tokenised (keys, strings, numbers,
+`true`/`false`/`null`) by a small regex in `overlay.js` — the capture ships the
+JSON as plain text with no highlighting.
+
+### Limits
+
+- The field↔line link matches on the field name alone. A name that appears at
+  two depths (`capture_id` inside `captures`, say) highlights every line that
+  uses it, and clicking such a line jumps to the first field with that name.
+- Only the 200 response publishes a sample in this capture; 400/404/500 show the
+  empty state.
+- Long `VALID VALUES` chips (the currency list is every ISO code) are capped at
+  92px and scroll, rather than pushing their own field off the screen.
+- The `channel_code` description embeds an iframe from `doc-widget.xendit.co`,
+  which cannot load offline and rendered as a broken grey box. It is replaced
+  with a labelled placeholder that links out.

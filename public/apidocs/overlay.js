@@ -167,7 +167,7 @@
 
   /* ---------- response tabs (200 / 400 / 404 / 500) ---------- */
   function buildResponseTabs() {
-    var body = $('.api-response-body > .api-content');
+    var body = $('.api-endpoint > .api-response-body > .api-content');
     if (!body) return;
     var blocks = $$(':scope > .api-response', body);
     if (blocks.length < 2) return;
@@ -183,16 +183,19 @@
     blocks.forEach(function (b) {
       var c = $('.api-content', b);
       if (!c) return;
-      var ex = h('button', 'xd-close-example', { type: 'button' }, ['Hide sample']);
+      // The pinned rail is where the sample lives now; inline it is opt-in.
+      c.classList.add('xd-example-closed');
+      var ex = h('button', 'xd-close-example', { type: 'button' }, ['Show sample inline']);
       ex.addEventListener('click', function () {
         var closed = c.classList.toggle('xd-example-closed');
-        ex.textContent = closed ? 'Show sample' : 'Hide sample';
+        ex.textContent = closed ? 'Show sample inline' : 'Hide inline sample';
       });
       c.insertBefore(ex, c.firstChild);
     });
     function select(i) {
       blocks.forEach(function (b, j) { b.classList.toggle('xd-hidden', j !== i); });
       $$('.xd-resp-tab', bar).forEach(function (t, j) { t.setAttribute('aria-selected', String(j === i)); });
+      document.dispatchEvent(new CustomEvent('xd:resp', { detail: { index: i, block: blocks[i] } }));
     }
     blocks.forEach(function (b) { var hd = $('.api-status', b); if (hd) hd.classList.add('xd-hidden'); });
     select(0);
@@ -394,10 +397,27 @@
     return m ? m[1] : '';
   }
 
+  /** The capture is offline, so an embedded widget renders as a broken grey box. */
+  function replaceEmbeds() {
+    $$('.api-endpoint iframe').forEach(function (f) {
+      var src = f.getAttribute('src') || '';
+      var host = (src.match(/^https?:\/\/([^\/]+)/) || [])[1] || 'another site';
+      var card = h('div', 'xd-embed', null, [
+        icon('fa-regular fa-arrow-up-right-from-square xd-embed-ic'),
+        h('div', null, null, [
+          h('b', null, null, ['Interactive widget']),
+          h('p', null, null, ['It is served from ' + host + ' and is not part of this captured page.']),
+          src ? h('a', 'xd-embed-link', { href: src, target: '_blank', rel: 'noreferrer' }, ['Open it in a new tab']) : null,
+        ]),
+      ]);
+      f.parentNode.replaceChild(card, f);
+    });
+  }
+
   function buildSchemaTools() {
-    var body = $('.api-response-body');
+    var body = $('.api-endpoint > .api-response-body');
     if (!body) return;
-    var head = $('.api-header.api-response-body-header', body);
+    var head = $(':scope > .api-header.api-response-body-header', body);
 
     /* --- collapsible objects --- */
     $$('.api-schema-object', body).forEach(function (obj) {
@@ -466,7 +486,7 @@
       expand, collapse,
     ]));
 
-    function visibleBlock() { return $$('.api-response-body > .api-content > .api-response').filter(function (b) { return !b.classList.contains('xd-hidden'); })[0] || body; }
+    function visibleBlock() { return $$('.api-endpoint > .api-response-body > .api-content > .api-response').filter(function (b) { return !b.classList.contains('xd-hidden'); })[0] || body; }
     function allObjs(root) { return $$('.api-schema-object.xd-obj', root); }
     expand.addEventListener('click', function () { allObjs(visibleBlock()).forEach(function (o) { setOpen(o, true); }); });
     collapse.addEventListener('click', function () { allObjs(visibleBlock()).forEach(function (o) { setOpen(o, Number(o.getAttribute('data-depth')) === 0); }); });
@@ -556,14 +576,18 @@
   var LW = { min: 200, max: 560, def: 300 };
   var RW = { min: 260, max: 720, def: 350 };
 
-  function readLayout() {
-    var d = { left: true, doc: true, right: true, lw: LW.def, rw: RW.def };
+  var LAYOUT = null;
+  function layout() {
+    if (LAYOUT) return LAYOUT;
+    var d = { left: true, doc: true, right: true, lw: LW.def, rw: RW.def, railh: 320, railOpen: true };
     try {
       var v = JSON.parse(localStorage.getItem(LAYOUT_KEY) || '{}');
       if (v && typeof v === 'object') for (var k in d) if (v[k] !== undefined) d[k] = v[k];
     } catch (e) { /* first visit, or storage blocked */ }
+    LAYOUT = d;
     return d;
   }
+  function saveLayout() { try { localStorage.setItem(LAYOUT_KEY, JSON.stringify(LAYOUT)); } catch (e) { /* ignore */ } }
   function clamp(v, r) { return Math.max(r.min, Math.min(r.max, v)); }
 
   function buildPanels() {
@@ -573,7 +597,7 @@
     var doc = $('site-docs-content-panel-container') && $('.main-content');
     if (!main || !left || !right || !doc) return;
 
-    var st = readLayout();
+    var st = layout();
     st.lw = clamp(st.lw, LW); st.rw = clamp(st.rw, RW);
     main.classList.add('xd-panels');
 
@@ -583,13 +607,16 @@
       { key: 'right', label: 'Try it', title: 'Try it panel' },
     ];
 
-    function save() { try { localStorage.setItem(LAYOUT_KEY, JSON.stringify(st)); } catch (e) { /* ignore */ } }
+    var save = saveLayout;
     function paint() {
       main.style.setProperty('--xd-lw', st.lw + 'px');
       main.style.setProperty('--xd-rw', st.rw + 'px');
       main.classList.toggle('xd-no-left', !st.left);
       main.classList.toggle('xd-no-doc', !st.doc);
       main.classList.toggle('xd-no-right', !st.right);
+      // the pinned example lives in the right column, so hiding it hands the
+      // sample back to the article rather than losing it altogether
+      document.documentElement.classList.toggle('xd-rail-gone', !st.right);
       $$('.xd-panel-chip').forEach(function (c) {
         var on = !!st[c.getAttribute('data-panel')];
         c.setAttribute('aria-pressed', String(on));
@@ -612,7 +639,11 @@
         box.appendChild(chip);
       });
       var reset = h('button', 'xd-layout-reset', { type: 'button', title: 'Reset the layout' }, [icon('fa-regular fa-arrow-rotate-left')]);
-      reset.addEventListener('click', function () { st = { left: true, doc: true, right: true, lw: LW.def, rw: RW.def }; save(); paint(); });
+      reset.addEventListener('click', function () {
+        st.left = st.doc = st.right = true; st.lw = LW.def; st.rw = RW.def;
+        save(); paint();
+        document.dispatchEvent(new CustomEvent('xd:layout-reset'));
+      });
       box.appendChild(reset);
       crumbs.appendChild(box);
     }
@@ -660,6 +691,172 @@
     return { set: setPanel, get: function (k) { return st[k]; } };
   }
 
-  function init() { buildHeader(); buildTree(); buildFollow(); buildResponseTabs(); buildTryIt(); wireBanner(); wireCollapse(buildPanels()); wireFilter(); labelResponseTabs(); buildEndpointBar(); buildSchemaTools(); document.documentElement.classList.add('xd-ready'); }
+  /* ---------- pinned example rail ----------
+     The sample payload used to sit inline in the article, which meant that by the
+     time you had scrolled to the thirtieth field you could no longer see what the
+     response actually looks like. It now lives in a pinned pane at the bottom of
+     the right column, and it answers back: hovering a field in the article
+     highlights that field's line here and scrolls the pane to it. */
+
+  var RAILH = { min: 120, max: 700, def: 320 };
+  var railState = null;
+
+  function jsonLine(line) {
+    // Conservative tokeniser: keys, strings, numbers, true/false/null. Anything
+    // it does not recognise is left as plain text.
+    var frag = document.createDocumentFragment();
+    var re = /("(?:[^"\\]|\\.)*")(\s*:)?|(-?\b\d+(?:\.\d+)?\b)|\b(true|false|null)\b/g;
+    var last = 0, m;
+    while ((m = re.exec(line))) {
+      if (m.index > last) frag.appendChild(document.createTextNode(line.slice(last, m.index)));
+      if (m[1] !== undefined) {
+        frag.appendChild(h('span', m[2] ? 'jk' : 'js', null, [m[1]]));
+        if (m[2]) frag.appendChild(document.createTextNode(m[2]));
+      } else if (m[3] !== undefined) frag.appendChild(h('span', 'jn', null, [m[3]]));
+      else frag.appendChild(h('span', 'jb', null, [m[4]]));
+      last = re.lastIndex;
+    }
+    if (last < line.length) frag.appendChild(document.createTextNode(line.slice(last)));
+    return frag;
+  }
+
+  function renderPayload(text) {
+    var code = h('div', 'xd-rail-code');
+    text.replace(/\r/g, '').replace(/\s+$/, '').split('\n').forEach(function (line, i) {
+      var key = line.match(/^\s*"([^"]+)"\s*:/);
+      var row = h('div', 'xd-ln', null, [h('span', 'xd-ln-n', null, [String(i + 1)]), h('span', 'xd-ln-t')]);
+      $('.xd-ln-t', row).appendChild(jsonLine(line));
+      if (key) row.setAttribute('data-key', key[1]);
+      code.appendChild(row);
+    });
+    return code;
+  }
+
+  /** The examples carried by one response block, as { name, text } */
+  function examplesOf(block) {
+    return $$('.api-media-type-example', block).map(function (ex) {
+      var pre = $('pre code, pre', ex);
+      return { name: ($('.name', ex) || {}).textContent || 'Example', text: pre ? pre.textContent : '' };
+    }).filter(function (e) { return e.text.trim(); });
+  }
+
+  function buildExampleRail() {
+    var host = $('#right-panel');
+    // Only the endpoint's own response list — the schema references further down the
+    // article are wrapped in their own .api-response-body and must not be picked up.
+    var blocks = $$('.api-endpoint > .api-response-body > .api-content > .api-response');
+    if (!host || !blocks.length) return;
+
+    var st = layout();
+    var rail = h('section', 'xd-rail', { 'aria-label': 'Example response' });
+    var status = h('span', 'xd-rail-status');
+    var picker = h('select', 'xd-rail-pick', { 'aria-label': 'Example' });
+    var copy = copyBtn(function () { return railState ? railState.text : ''; }, 'Copy the example');
+    var fold = h('button', 'xd-rail-fold', { type: 'button', 'aria-expanded': 'true', 'aria-label': 'Collapse the example' }, [icon('fa-regular fa-chevron-down')]);
+    var head = h('header', 'xd-rail-head', null, [h('span', 'xd-rail-t', null, ['Example']), status, picker, copy, fold]);
+    var body = h('div', 'xd-rail-body', { tabindex: '0' });
+    rail.appendChild(head); rail.appendChild(body);
+
+    var grip = h('div', 'xd-vrs', { role: 'separator', tabindex: '0', 'aria-orientation': 'horizontal', 'aria-label': 'Resize the example pane' });
+    host.appendChild(grip); host.appendChild(rail);
+    host.classList.add('xd-has-rail');
+
+    function applyH() {
+      host.style.setProperty('--xd-railh', st.railh + 'px');
+      host.classList.toggle('xd-rail-closed', !st.railOpen);
+      fold.setAttribute('aria-expanded', String(st.railOpen));
+    }
+    var save = saveLayout;
+    document.addEventListener('xd:layout-reset', function () { st.railh = RAILH.def; st.railOpen = true; save(); applyH(); });
+
+    fold.addEventListener('click', function () { st.railOpen = !st.railOpen; save(); applyH(); });
+
+    var dragging = false;
+    grip.addEventListener('pointerdown', function (e) { dragging = true; grip.setPointerCapture(e.pointerId); document.body.classList.add('xd-resizing-v'); e.preventDefault(); });
+    grip.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      var r = host.getBoundingClientRect();
+      st.railh = Math.max(RAILH.min, Math.min(Math.min(RAILH.max, r.height - 160), r.bottom - e.clientY));
+      st.railOpen = true; save(); applyH();
+    });
+    function stop(e) { if (!dragging) return; dragging = false; try { grip.releasePointerCapture(e.pointerId); } catch (x) {} document.body.classList.remove('xd-resizing-v'); }
+    grip.addEventListener('pointerup', stop);
+    grip.addEventListener('pointercancel', stop);
+    grip.addEventListener('dblclick', function () { st.railh = RAILH.def; st.railOpen = true; save(); applyH(); });
+    grip.addEventListener('keydown', function (e) {
+      var d = e.key === 'ArrowUp' ? 1 : e.key === 'ArrowDown' ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      st.railh = Math.max(RAILH.min, Math.min(RAILH.max, st.railh + d * (e.shiftKey ? 40 : 10)));
+      save(); applyH();
+    });
+
+    function show(block) {
+      var code = $('.api-code', block);
+      var n = code ? code.textContent.trim() : '';
+      status.textContent = n + (CODE_LABEL[n] ? ' ' + CODE_LABEL[n] : '');
+      status.className = 'xd-rail-status ' + (/^2/.test(n) ? 'ok' : /^5/.test(n) ? 'bad' : 'warn');
+      var list = examplesOf(block);
+      picker.innerHTML = '';
+      body.innerHTML = '';
+      picker.hidden = list.length < 2;
+      if (!list.length) {
+        railState = null;
+        body.appendChild(h('p', 'xd-rail-empty', null, ['No sample payload is published for ' + (n || 'this status') + '. The fields it returns are listed in the article.']));
+        return;
+      }
+      list.forEach(function (e, i) { picker.appendChild(h('option', null, { value: String(i) }, [e.name])); });
+      function pick(i) {
+        railState = { text: list[i].text };
+        body.innerHTML = '';
+        body.appendChild(renderPayload(list[i].text));
+      }
+      picker.onchange = function () { pick(Number(picker.value)); };
+      pick(0);
+    }
+
+    document.addEventListener('xd:resp', function (e) { show(e.detail.block); });
+    var open = blocks.filter(function (b) { return !b.classList.contains('xd-hidden'); })[0] || blocks[0];
+    show(open);
+    applyH();
+
+    /* --- the article talks to the rail --- */
+    var pinned = null;
+    function light(name) {
+      $$('.xd-ln.hit', body).forEach(function (l) { l.classList.remove('hit'); });
+      if (!name) return;
+      var rows = $$('.xd-ln[data-key="' + name.replace(/"/g, '') + '"]', body);
+      if (!rows.length) return;
+      rows.forEach(function (r) { r.classList.add('hit'); });
+      var r = rows[0], top = r.offsetTop, h0 = r.offsetHeight;
+      if (top < body.scrollTop || top + h0 > body.scrollTop + body.clientHeight) {
+        body.scrollTop = Math.max(0, top - body.clientHeight / 2 + h0);
+      }
+    }
+    $$('.api-schema-property').forEach(function (f) {
+      f.addEventListener('mouseenter', function () { if (!pinned) light(f.dataset.xdName); });
+      f.addEventListener('mouseleave', function () { if (!pinned) light(null); });
+      f.addEventListener('click', function (e) {
+        if (e.target.closest('button, a, select, input')) return;
+        if (pinned === f) { pinned = null; f.classList.remove('xd-pinned'); light(null); return; }
+        if (pinned) pinned.classList.remove('xd-pinned');
+        pinned = f; f.classList.add('xd-pinned'); light(f.dataset.xdName);
+      });
+    });
+    // and the rail talks back
+    body.addEventListener('click', function (e) {
+      var row = e.target.closest('.xd-ln[data-key]');
+      if (!row) return;
+      var f = $$('.api-schema-property').filter(function (x) { return x.dataset.xdName === row.getAttribute('data-key') && !x.classList.contains('xd-nomatch'); })[0];
+      if (!f) return;
+      var p = f.parentElement;
+      while (p) { if (p.classList && p.classList.contains('api-schema-object')) p.classList.remove('xd-closed'); p = p.parentElement; }
+      f.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      f.classList.add('xd-flash');
+      setTimeout(function () { f.classList.remove('xd-flash'); }, 900);
+    });
+  }
+
+  function init() { buildHeader(); buildTree(); buildFollow(); buildResponseTabs(); buildTryIt(); wireBanner(); wireCollapse(buildPanels()); wireFilter(); labelResponseTabs(); buildEndpointBar(); replaceEmbeds(); buildSchemaTools(); buildExampleRail(); document.documentElement.classList.add('xd-ready'); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
