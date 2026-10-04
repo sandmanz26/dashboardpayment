@@ -102,7 +102,7 @@ header { position: sticky; top: 0; z-index: 100; }
 .api-response-body .api-content { position: relative; }
 .xd-close-example { position: absolute; right: 6px; top: 6px; z-index: 2; height: 28px; padding: 0 10px; font-size: 12.5px; color: #3f3f46; background: #fff; border: 1px solid #e4e4e7; border-radius: 6px; cursor: pointer; }
 .xd-close-example:hover { background: #fafafa; }
-.xd-example-closed .api-media-type-content, .xd-example-closed .api-response-data { display: none !important; }
+.xd-example-closed .example-container, .xd-example-closed .api-response-data, .xd-example-closed .api-code-desc { display: none !important; }
 select.api-response-data, select.select-example { appearance: none; -webkit-appearance: none; height: 30px; padding: 0 34px 0 12px; font-size: 13.5px; color: #18181b; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%2318181b' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px center; border: 1px solid #e4e4e7; border-radius: 6px; }
 .xd-tabs { margin-bottom: 0 !important; }
 .right-panel-content > .xd-pane { margin-top: 0 !important; }
@@ -141,3 +141,129 @@ select.api-response-data, select.select-example { appearance: none; -webkit-appe
 site-docs-left-panel-container.xd-collapsed { flex: 0 0 44px !important; width: 44px !important; min-width: 44px !important; }
 .left-container.left-container-collapsed { width: 44px; padding: 0 !important; }
 .left-container.left-container-collapsed .pinned-section, .left-container.left-container-collapsed .catergory-list { display: none !important; }
+
+/* =====================================================================
+   Developer affordances added on top of the captured page.
+   Everything here is ours and prefixed .xd-. Values follow the XenDS
+   scale the console uses (spacing 4/8/12/16/24, radius 6/8, type 12/13/14)
+   so the docs page and the dashboard read as one product, while keeping
+   the docs site's own palette.
+   ===================================================================== */
+
+/* ----- endpoint bar ----- */
+.xd-ep-sentinel { height: 1px; margin: 0; }
+.api-section.api-path.xd-ep {
+  position: sticky; top: 104px; z-index: 30;
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px 12px;
+  background: #fff; border: 1px solid #d7f0df; border-radius: 10px;
+  padding: 14px 14px 12px !important;
+  transition: padding .16s ease, box-shadow .16s ease, border-radius .16s ease;
+}
+.api-section.api-path.xd-ep .api-header { display: flex; align-items: center; gap: 12px; min-width: 0; font-size: 15px; }
+.api-section.api-path.xd-ep .description { grid-column: 1 / -1; margin: 0; color: #52525b; font-size: 13.5px; }
+.xd-pathvar { padding: 1px 4px; border-radius: 4px; background: #eef2ff; color: #3730a3; font-weight: 600; }
+.xd-ep-tools { display: flex; align-items: center; gap: 6px; }
+.xd-copy { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; font-size: 12.5px; font-weight: 500; color: #3f3f46; background: #fff; border: 1px solid #e4e4e7; border-radius: 6px; cursor: pointer; }
+.xd-copy:hover { background: #fafafa; border-color: #d4d4d8; }
+.xd-copy.ok { color: #15803d; border-color: #bbf7d0; background: #f0fdf4; }
+
+/* jump rail — the section you are in stays on screen */
+.xd-jump { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; padding-top: 10px; border-top: 1px solid #f1f1f4; }
+.xd-pill { padding: 4px 10px; border-radius: 999px; font-size: 12.5px; color: #52525b; text-decoration: none; white-space: nowrap; }
+.xd-pill:hover { background: #f4f4f5; color: #18181b; }
+.xd-pill.on { background: #eef4ff; color: #1a60e3; font-weight: 600; }
+
+/* compact state once the page scrolls past the bar */
+.api-section.api-path.xd-ep.xd-stuck { padding: 8px 12px !important; border-radius: 0 0 10px 10px; box-shadow: 0 6px 16px -10px rgba(24, 24, 27, .25); }
+.xd-ep.xd-stuck .description { display: none; }
+.xd-ep.xd-stuck .xd-jump { margin-top: 0; padding-top: 6px; }
+.xd-ep.xd-stuck .api-header { font-size: 14px; }
+
+/* ----- response tabs ----- */
+.xd-resp-tab .xd-tab-label { font-weight: 400; font-size: 12.5px; color: #71717a; }
+.xd-resp-tab[aria-selected="true"] .xd-tab-label { color: #1a60e3; }
+
+/* ----- responses header becomes a toolbar ----- */
+.api-header.xd-resp-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.xd-tools { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.xd-filter { position: relative; display: flex; align-items: center; }
+.xd-filter-ic { position: absolute; left: 10px; font-size: 12px; color: #a1a1aa; pointer-events: none; }
+.xd-filter-input { width: 210px; height: 30px; padding: 0 10px 0 28px; font-size: 13px; font-weight: 400; color: #18181b; background: #fff; border: 1px solid #e4e4e7; border-radius: 6px; }
+.xd-filter-input:focus { outline: none; border-color: #1a60e3; box-shadow: 0 0 0 3px rgba(26, 96, 227, .12); }
+.xd-filter-count { margin-left: 10px; font-size: 12px; font-weight: 400; color: #71717a; white-space: nowrap; }
+.xd-ghost { height: 30px; padding: 0 10px; font-size: 12.5px; font-weight: 500; color: #3f3f46; background: transparent; border: 1px solid transparent; border-radius: 6px; cursor: pointer; }
+.xd-ghost:hover { background: #f4f4f5; }
+
+/* ----- schema objects collapse ----- */
+.api-schema-object.xd-obj { border-left: 2px solid #f1f1f4; padding-left: 10px; margin: 6px 0; }
+.api-schema-object.xd-obj[data-depth="0"] { border-left: 0; padding-left: 0; }
+.xd-obj-toggle { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; margin: 2px 0 2px -8px; background: transparent; border: 0; border-radius: 6px; cursor: pointer; text-align: left; }
+.xd-obj-toggle:hover { background: #f7f7f8; }
+.xd-obj-toggle .xd-chev { font-size: 11px; color: #71717a; transition: transform .14s ease; }
+.xd-closed > .xd-obj-toggle .xd-chev { transform: rotate(-90deg); }
+.xd-obj-name { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; font-weight: 600; color: #18181b; }
+.xd-obj-count { padding: 1px 7px; border-radius: 999px; background: #f4f4f5; color: #71717a; font-size: 11.5px; }
+.api-schema-object.xd-closed > .indent-level, .api-schema-object.xd-closed > .api-schema-title { display: none; }
+
+/* ----- field rows: name first, constraints last ----- */
+.api-schema-property { position: relative; padding: 8px 8px 8px 10px; margin-left: -10px; border-radius: 6px; }
+.api-schema-property:hover { background: #fafafa; }
+.api-schema-property.xd-flash { background: #fffbeb; }
+.api-schema-property .name { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13.5px; font-weight: 600; color: #18181b; }
+.api-schema-property .data-type .data-type-name { font-size: 12px; color: #52525b; background: #f4f4f5; border-radius: 4px; padding: 1px 6px; }
+.api-schema-property .description { max-width: 72ch; color: #52525b; font-size: 13.5px; line-height: 1.55; }
+.api-schema-validation { font-size: 11.5px; color: #52525b; background: #fafafa; border: 1px solid #ededf0; border-radius: 5px; padding: 2px 8px; }
+.api-schema-validation span { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #a1a1aa; margin-right: 6px; }
+.api-schema-validation-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+
+/* per-field deep link */
+.xd-anchor { opacity: 0; margin-left: 8px; padding: 0 4px; font-size: 11px; color: #a1a1aa; background: transparent; border: 0; cursor: pointer; vertical-align: middle; }
+.api-schema-property:hover .xd-anchor, .xd-anchor:focus-visible { opacity: 1; }
+.xd-anchor:hover { color: #1a60e3; }
+
+/* ----- filtering ----- */
+.xd-nomatch { display: none !important; }
+.xd-mark { background: #fef08a; color: inherit; padding: 0 1px; border-radius: 2px; }
+.xd-filtering .api-schema-object.xd-obj > .xd-obj-toggle { background: #fafafa; }
+
+/* ----- endpoint bar: explicit grid so the DOM order does not decide the layout ----- */
+.api-section.api-path.xd-ep { grid-template-rows: auto auto auto; }
+.api-section.api-path.xd-ep > .api-header { grid-column: 1; grid-row: 1; }
+.api-section.api-path.xd-ep > .xd-ep-tools { grid-column: 2; grid-row: 1; }
+.api-section.api-path.xd-ep > .description { grid-column: 1 / -1; grid-row: 2; }
+.api-section.api-path.xd-ep > .xd-jump { grid-column: 1 / -1; grid-row: 3; }
+/* the method + path read as one line of code, not as a box inside a box */
+.xd-ep .api-header.get-method, .xd-ep .api-header[class*="-method"] { background: transparent !important; border: 0 !important; border-radius: 0 !important; padding: 0 !important; min-height: 0 !important; }
+.xd-ep .api-http-method { height: 22px; padding: 0 8px; display: inline-flex; align-items: center; border-radius: 5px; background: #e8f8ee; color: #1b7f44; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.xd-ep[data-method="POST"] .api-http-method { background: #eef2ff; color: #3730a3; }
+.xd-ep[data-method="PATCH"] .api-http-method { background: #fff7ed; color: #9a3412; }
+.xd-ep[data-method="DELETE"] .api-http-method { background: #fef2f2; color: #b91c1c; }
+.xd-ep .api-url { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; color: #18181b; overflow-wrap: anywhere; }
+.api-section.api-path.xd-ep { border-color: #e4e4e7; }
+
+/* ----- field rows: name and type on one line, description under it, constraints last ----- */
+.api-schema-property > .api-schema-title { display: grid !important; grid-template-columns: auto auto 1fr; align-items: baseline; column-gap: 8px; row-gap: 3px; }
+.api-schema-property > .api-schema-title > .name { grid-column: 1; grid-row: 1; }
+.api-schema-property > .api-schema-title > .data-type { grid-column: 2; grid-row: 1; white-space: nowrap; }
+.api-schema-property > .api-schema-title > .description { grid-column: 1 / -1; grid-row: 2; }
+.api-schema-property > .api-schema-title > .api-schema-validation-container { grid-column: 1 / -1; grid-row: 3; }
+.api-schema-property .description p { margin: 0; }
+
+/* constraint chips are reference material, so they stop competing with the field name */
+.api-schema-validation-container .api-schema-validation { display: inline-flex; align-items: baseline; gap: 6px; height: auto; min-height: 0; padding: 2px 8px !important; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; color: #3f3f46; background: #fafafa !important; border: 1px solid #ededf0 !important; border-radius: 5px; }
+.api-schema-validation-container .api-schema-validation > span { padding: 0 !important; margin: 0 !important; background: transparent !important; border: 0 !important; font-family: inherit; font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #a1a1aa; }
+
+/* ----- object header replaces the vendor's "object / <sentence>" block ----- */
+.api-schema-object.xd-obj > .api-schema-title { display: none; }
+.xd-obj-toggle { flex-wrap: wrap; row-gap: 2px; }
+.xd-obj-type { font-size: 12px; color: #52525b; background: #f4f4f5; border-radius: 4px; padding: 1px 6px; }
+.xd-obj-desc { flex: 1 1 100%; padding-left: 19px; color: #52525b; font-size: 13px; line-height: 1.5; }
+
+/* the vendor repeats the object's type and blurb under our toggle, and ships a second
+   "Expand All" that our toolbar now owns — both go, so there is one control per job */
+.api-schema-object.xd-obj > .api-schema-title { display: none !important; }
+.api-media-type .btn-container { display: none !important; }
+.xd-close-example { top: 4px; right: 4px; }
+
+/* native #anchor jumps land below the sticky header and endpoint bar, not under them */
+.api-section, .api-response-body, .api-schema-property { scroll-margin-top: 230px; }

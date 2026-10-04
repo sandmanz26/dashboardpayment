@@ -183,10 +183,10 @@
     blocks.forEach(function (b) {
       var c = $('.api-content', b);
       if (!c) return;
-      var ex = h('button', 'xd-close-example', { type: 'button' }, ['Close example']);
+      var ex = h('button', 'xd-close-example', { type: 'button' }, ['Hide sample']);
       ex.addEventListener('click', function () {
         var closed = c.classList.toggle('xd-example-closed');
-        ex.textContent = closed ? 'Open example' : 'Close example';
+        ex.textContent = closed ? 'Show sample' : 'Hide sample';
       });
       c.insertBefore(ex, c.firstChild);
     });
@@ -283,6 +283,275 @@
     if (clear) clear.addEventListener('click', function () { input.value = ''; apply(); input.focus(); });
   }
 
-  function init() { buildHeader(); buildTree(); buildFollow(); buildResponseTabs(); buildTryIt(); wireBanner(); wireCollapse(); wireFilter(); document.documentElement.classList.add('xd-ready'); }
+  /* ---------- endpoint bar: copy, path variables, sticky context ---------- */
+  var SECTIONS = [];
+
+  function slug(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+
+  function copyBtn(getText, label) {
+    var b = h('button', 'xd-copy', { type: 'button', title: label, 'aria-label': label }, [icon('fa-regular fa-copy'), h('span', 'xd-copy-t', null, ['Copy'])]);
+    b.addEventListener('click', function () {
+      var t = getText();
+      var done = function () { b.classList.add('ok'); $('.xd-copy-t', b).textContent = 'Copied'; setTimeout(function () { b.classList.remove('ok'); $('.xd-copy-t', b).textContent = 'Copy'; }, 1400); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function () {});
+      else { var ta = h('textarea', null, { style: 'position:fixed;opacity:0' }); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (e) {} document.body.removeChild(ta); }
+    });
+    return b;
+  }
+
+  /** Split "/v3/payments/{payment_id}" so the variable reads as a variable. */
+  function decoratePath(el) {
+    var raw = el.textContent.trim();
+    el.textContent = '';
+    raw.split(/(\{[^}]+\})/).forEach(function (part) {
+      if (!part) return;
+      if (part.charAt(0) === '{') el.appendChild(h('span', 'xd-pathvar', null, [part]));
+      else el.appendChild(document.createTextNode(part));
+    });
+    return raw;
+  }
+
+  function buildEndpointBar() {
+    var sec = $('.api-section.api-path');
+    if (!sec) return;
+    var url = $('.api-url, .url, .api-path-url', sec) || (function () {
+      // the path text sits next to the method chip; pick the longest text node holder
+      var best = null;
+      $$('*', sec).forEach(function (n) { if (n.children.length === 0 && /^\//.test(n.textContent.trim())) best = n; });
+      return best;
+    })();
+    var method = (($('.api-method, .method, .http-method', sec) || {}).textContent || 'GET').trim().toUpperCase();
+    var path = url ? decoratePath(url) : '';
+    var full = 'https://api.xendit.co' + path;
+
+    var tools = h('div', 'xd-ep-tools', null, [
+      copyBtn(function () { return full; }, 'Copy request URL'),
+    ]);
+    sec.classList.add('xd-ep');
+    sec.setAttribute('data-method', method);
+    sec.appendChild(tools);
+
+    // Sticky context: the bar compacts once the page scrolls past its resting place.
+    var sentinel = h('div', 'xd-ep-sentinel');
+    sec.parentNode.insertBefore(sentinel, sec);
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (es) { sec.classList.toggle('xd-stuck', !es[0].isIntersecting); }, { threshold: 1 }).observe(sentinel);
+    }
+
+    // Jump pills live inside the bar, so the section you are in is always on screen.
+    var rail = h('nav', 'xd-jump', { 'aria-label': 'Jump to section' });
+    var host = sec.parentNode;
+    $$(':scope > .api-section, :scope > .api-response-body', host).forEach(function (s) {
+      if (s === sec) return;
+      var head = $('.api-header', s);
+      var name = head ? head.textContent.trim() : '';
+      if (!name) return;
+      var id = 'xd-sec-' + slug(name);
+      s.id = id;
+      var pill = h('a', 'xd-pill', { href: '#' + id }, [name]);
+      pill.addEventListener('click', function (e) {
+        e.preventDefault();
+        // clear the sticky header plus the bar itself, so the section heading is not hidden under them
+        var off = 104 + sec.offsetHeight + 16;
+        window.scrollTo({ top: s.getBoundingClientRect().top + window.pageYOffset - off, behavior: 'smooth' });
+        history.replaceState(null, '', '#' + id);
+      });
+      rail.appendChild(pill);
+      SECTIONS.push({ el: s, pill: pill });
+    });
+    if (SECTIONS.length) {
+      sec.appendChild(rail);
+      var spy = function () {
+        var best = SECTIONS[0], y = window.pageYOffset + 200;
+        SECTIONS.forEach(function (s) { if (s.el.getBoundingClientRect().top + window.pageYOffset <= y) best = s; });
+        SECTIONS.forEach(function (s) { s.pill.classList.toggle('on', s === best); });
+      };
+      window.addEventListener('scroll', spy, { passive: true });
+      spy();
+    }
+  }
+
+  /* ---------- response tabs: say what the code means ---------- */
+  var CODE_LABEL = { '200': 'OK', '201': 'Created', '400': 'Bad request', '401': 'Unauthorized', '403': 'Forbidden', '404': 'Not found', '409': 'Conflict', '422': 'Unprocessable', '429': 'Rate limited', '500': 'Server error', '503': 'Unavailable' };
+  function labelResponseTabs() {
+    $$('.xd-resp-tab').forEach(function (t) {
+      var code = t.textContent.trim();
+      var lbl = CODE_LABEL[code];
+      if (lbl) t.appendChild(h('span', 'xd-tab-label', null, [lbl]));
+    });
+  }
+
+  /* ---------- schema browser: collapse, filter, deep-link ---------- */
+  function fieldsIn(el) { return $$('.api-schema-property', el); }
+
+  function nameOf(obj) {
+    var t = $(':scope > .api-schema-title', obj);
+    if (!t) return '';
+    var n = $('.name', t);
+    if (n && n.textContent.trim()) return n.textContent.trim();
+    // Document360 puts a nested object's name in the type cell: "payment_detailsobject (...)"
+    var raw = (t.textContent || '').trim();
+    var m = raw.match(/^([a-z_][a-z0-9_]*)\s*object/i);
+    return m ? m[1] : '';
+  }
+
+  function buildSchemaTools() {
+    var body = $('.api-response-body');
+    if (!body) return;
+    var head = $('.api-header.api-response-body-header', body);
+
+    /* --- collapsible objects --- */
+    $$('.api-schema-object', body).forEach(function (obj) {
+      var level = $(':scope > .indent-level', obj);
+      if (!level) return;
+      var count = fieldsIn(level).length;
+      if (!count) return;
+      var depth = 0, p = obj.parentElement;
+      while (p && p !== body) { if (p.classList && p.classList.contains('api-schema-object')) depth++; p = p.parentElement; }
+      var title = $(':scope > .api-schema-title', obj);
+      var nm = nameOf(obj);
+      // The vendor title only repeats "object" plus a sentence, so it moves into the toggle.
+      var blurb = title ? (($('.description', title) || {}).textContent || '').trim() : '';
+      var toggle = h('button', 'xd-obj-toggle', { type: 'button', 'aria-expanded': 'true' }, [
+        icon('fa-regular fa-chevron-down xd-chev'),
+        h('span', 'xd-obj-name', null, [nm || (depth === 0 ? 'Response body' : 'object')]),
+        nm || depth > 0 ? h('span', 'xd-obj-type', null, ['object']) : null,
+        h('span', 'xd-obj-count', null, [count + (count === 1 ? ' field' : ' fields')]),
+        blurb ? h('span', 'xd-obj-desc', null, [blurb]) : null,
+      ]);
+      toggle.addEventListener('click', function () { setOpen(obj, obj.classList.contains('xd-closed')); });
+      obj.classList.add('xd-obj');
+      obj.setAttribute('data-depth', String(depth));
+      if (title) title.parentNode.insertBefore(toggle, title); else obj.insertBefore(toggle, level);
+      // Nested objects start closed: the top level of a response should fit on one screen.
+      if (depth > 0) setOpen(obj, false);
+    });
+
+    function setOpen(obj, open) {
+      obj.classList.toggle('xd-closed', !open);
+      var t = $(':scope > .xd-obj-toggle', obj);
+      if (t) t.setAttribute('aria-expanded', String(open));
+    }
+
+    /* --- per-field anchors --- */
+    var seen = {};
+    fieldsIn(body).forEach(function (f) {
+      var n = $('.name', f);
+      if (!n) return;
+      var nm = n.textContent.trim();
+      if (!nm) return;
+      f.dataset.xdName = nm;
+      // keep the identifier itself in the anchor: #field-reference_id reads better than a slug
+      var id = 'field-' + nm.replace(/[^A-Za-z0-9_.-]+/g, '-');
+      if (seen[id]) { seen[id]++; id = id + '-' + seen[id]; } else seen[id] = 1;
+      f.id = id;
+      var a = h('button', 'xd-anchor', { type: 'button', title: 'Copy link to ' + nm, 'aria-label': 'Copy link to ' + nm }, [icon('fa-regular fa-link')]);
+      a.addEventListener('click', function () {
+        var href = location.origin + location.pathname + '#' + id;
+        if (navigator.clipboard) navigator.clipboard.writeText(href).catch(function () {});
+        history.replaceState(null, '', '#' + id);
+        f.classList.add('xd-flash'); setTimeout(function () { f.classList.remove('xd-flash'); }, 900);
+      });
+      n.appendChild(a);
+    });
+
+    /* --- toolbar: filter + expand all --- */
+    if (!head) return;
+    var input = h('input', 'xd-filter-input', { type: 'search', placeholder: 'Filter fields…', 'aria-label': 'Filter response fields', spellcheck: 'false' });
+    var count = h('span', 'xd-filter-count', { role: 'status' });
+    var expand = h('button', 'xd-ghost', { type: 'button' }, ['Expand all']);
+    var collapse = h('button', 'xd-ghost', { type: 'button' }, ['Collapse all']);
+    head.classList.add('xd-resp-head');
+    head.appendChild(h('div', 'xd-tools', null, [
+      h('div', 'xd-filter', null, [icon('fa-regular fa-magnifying-glass xd-filter-ic'), input, count]),
+      expand, collapse,
+    ]));
+
+    function visibleBlock() { return $$('.api-response-body > .api-content > .api-response').filter(function (b) { return !b.classList.contains('xd-hidden'); })[0] || body; }
+    function allObjs(root) { return $$('.api-schema-object.xd-obj', root); }
+    expand.addEventListener('click', function () { allObjs(visibleBlock()).forEach(function (o) { setOpen(o, true); }); });
+    collapse.addEventListener('click', function () { allObjs(visibleBlock()).forEach(function (o) { setOpen(o, Number(o.getAttribute('data-depth')) === 0); }); });
+
+    /** Re-render a description with every occurrence of `q` wrapped in <mark>. */
+    function markDesc(f, q) {
+      var d = $(':scope > .api-schema-title > .description', f);
+      if (!d) return;
+      if (f._xdDesc === undefined) f._xdDesc = d.innerHTML;
+      d.innerHTML = f._xdDesc;
+      if (!q) return;
+      var walker = document.createTreeWalker(d, NodeFilter.SHOW_TEXT, null);
+      var nodes = [], t;
+      while ((t = walker.nextNode())) nodes.push(t);
+      nodes.forEach(function (node) {
+        var text = node.nodeValue, i = text.toLowerCase().indexOf(q);
+        if (i < 0) return;
+        var frag = document.createDocumentFragment(), pos = 0;
+        while (i >= 0) {
+          frag.appendChild(document.createTextNode(text.slice(pos, i)));
+          frag.appendChild(h('mark', 'xd-mark', null, [text.slice(i, i + q.length)]));
+          pos = i + q.length;
+          i = text.toLowerCase().indexOf(q, pos);
+        }
+        frag.appendChild(document.createTextNode(text.slice(pos)));
+        node.parentNode.replaceChild(frag, node);
+      });
+    }
+
+    function mark(f, q) {
+      markDesc(f, q);
+      var n = $('.name', f);
+      if (!n) return;
+      var nm = f.dataset.xdName || '';
+      var a = $('.xd-anchor', n);
+      n.textContent = '';
+      var i = q ? nm.toLowerCase().indexOf(q) : -1;
+      if (i < 0) n.appendChild(document.createTextNode(nm));
+      else {
+        n.appendChild(document.createTextNode(nm.slice(0, i)));
+        n.appendChild(h('mark', 'xd-mark', null, [nm.slice(i, i + q.length)]));
+        n.appendChild(document.createTextNode(nm.slice(i + q.length)));
+      }
+      if (a) n.appendChild(a);
+    }
+
+    function apply() {
+      var q = input.value.trim().toLowerCase();
+      var block = visibleBlock();
+      var fields = fieldsIn(block);
+      var hits = 0;
+      fields.forEach(function (f) {
+        var nm = (f.dataset.xdName || '').toLowerCase();
+        var desc = ($('.description', f) || {}).textContent || '';
+        var on = !q || nm.indexOf(q) >= 0 || desc.toLowerCase().indexOf(q) >= 0;
+        f.classList.toggle('xd-nomatch', !on);
+        if (on && q) hits++;
+        mark(f, q);
+      });
+      allObjs(block).forEach(function (o) {
+        var inner = fieldsIn(o).filter(function (f) { return !f.classList.contains('xd-nomatch'); }).length;
+        o.classList.toggle('xd-nomatch', !!q && inner === 0);
+        if (q && inner) setOpen(o, true);
+        else if (!q) setOpen(o, Number(o.getAttribute('data-depth')) === 0);
+      });
+      body.classList.toggle('xd-filtering', !!q);
+      count.textContent = q ? hits + (hits === 1 ? ' match' : ' matches') : fields.length + ' fields';
+    }
+    input.addEventListener('input', apply);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Escape') { input.value = ''; apply(); } });
+    $$('.xd-resp-tab').forEach(function (t) { t.addEventListener('click', function () { setTimeout(apply, 0); }); });
+    apply();
+
+    // Open whatever a shared #field-... link points at.
+    if (location.hash.indexOf('#field-') === 0) {
+      var target = document.getElementById(location.hash.slice(1));
+      if (target) {
+        var p = target.parentElement;
+        while (p) { if (p.classList && p.classList.contains('api-schema-object')) setOpen(p, true); p = p.parentElement; }
+        setTimeout(function () { target.scrollIntoView({ block: 'center' }); target.classList.add('xd-flash'); }, 60);
+      }
+    }
+  }
+
+  function init() { buildHeader(); buildTree(); buildFollow(); buildResponseTabs(); buildTryIt(); wireBanner(); wireCollapse(); wireFilter(); labelResponseTabs(); buildEndpointBar(); buildSchemaTools(); document.documentElement.classList.add('xd-ready'); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
