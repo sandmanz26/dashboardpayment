@@ -185,12 +185,6 @@
       if (!c) return;
       // The pinned rail is where the sample lives now; inline it is opt-in.
       c.classList.add('xd-example-closed');
-      var ex = h('button', 'xd-close-example', { type: 'button' }, ['Show sample inline']);
-      ex.addEventListener('click', function () {
-        var closed = c.classList.toggle('xd-example-closed');
-        ex.textContent = closed ? 'Show sample inline' : 'Hide inline sample';
-      });
-      c.insertBefore(ex, c.firstChild);
     });
     function select(i) {
       blocks.forEach(function (b, j) { b.classList.toggle('xd-hidden', j !== i); });
@@ -480,10 +474,20 @@
     var count = h('span', 'xd-filter-count', { role: 'status' });
     var expand = h('button', 'xd-ghost', { type: 'button' }, ['Expand all']);
     var collapse = h('button', 'xd-ghost', { type: 'button' }, ['Collapse all']);
+    var inline = h('button', 'xd-ghost', { type: 'button', 'aria-pressed': 'false' }, ['Sample inline']);
+    inline.addEventListener('click', function () {
+      var on = inline.getAttribute('aria-pressed') !== 'true';
+      inline.setAttribute('aria-pressed', String(on));
+      inline.classList.toggle('on', on);
+      $$('.api-endpoint .api-content-status-success, .api-endpoint .api-media-type-content').forEach(function (c) {
+        if (c.classList.contains('api-media-type-content')) return;
+        c.classList.toggle('xd-example-closed', !on);
+      });
+    });
     head.classList.add('xd-resp-head');
     head.appendChild(h('div', 'xd-tools', null, [
       h('div', 'xd-filter', null, [icon('fa-regular fa-magnifying-glass xd-filter-ic'), input, count]),
-      expand, collapse,
+      expand, collapse, inline,
     ]));
 
     function visibleBlock() { return $$('.api-endpoint > .api-response-body > .api-content > .api-response').filter(function (b) { return !b.classList.contains('xd-hidden'); })[0] || body; }
@@ -579,7 +583,7 @@
   var LAYOUT = null;
   function layout() {
     if (LAYOUT) return LAYOUT;
-    var d = { left: true, doc: true, right: true, lw: LW.def, rw: RW.def, railh: 320, railOpen: true };
+    var d = { left: true, doc: true, right: true, lw: LW.def, rw: RW.def, railh: 320, railOpen: true, railSet: false, leftManual: false, rightManual: false, docManual: false };
     try {
       var v = JSON.parse(localStorage.getItem(LAYOUT_KEY) || '{}');
       if (v && typeof v === 'object') for (var k in d) if (v[k] !== undefined) d[k] = v[k];
@@ -623,11 +627,30 @@
         c.classList.toggle('on', on);
       });
     }
-    function setPanel(key, on) {
+    function setPanel(key, on, auto) {
       // never hide the last visible column — there would be nothing left to read
       if (!on && PANELS.filter(function (p) { return st[p.key]; }).length < 2) return;
+      // a column the reader switched themselves is theirs; autoFit stops touching it
+      if (!auto) st[key + 'Manual'] = true;
       st[key] = on; save(); paint();
     }
+
+    /* Three columns need room. Below it the article is squeezed to a few words a
+       line, so the side columns stand down until the window can carry them —
+       unless the reader has switched that column themselves. */
+    var MIN3 = 1180, MIN2 = 820;
+    var auto = { left: false, right: false };
+    function autoFit() {
+      var w = main.getBoundingClientRect().width;
+      if (!w) return;
+      [['right', MIN2], ['left', MIN3]].forEach(function (pair) {
+        var key = pair[0], min = pair[1];
+        if (st[key + 'Manual']) return;
+        if (w < min && st[key]) { auto[key] = true; setPanel(key, false, true); }
+        else if (w >= min && auto[key] && !st[key]) { auto[key] = false; setPanel(key, true, true); }
+      });
+    }
+    window.addEventListener('resize', autoFit);
 
     /* chips live in the breadcrumb row, so they are reachable from anywhere on the page */
     var crumbs = $('.breadcrumb-nav');
@@ -641,6 +664,8 @@
       var reset = h('button', 'xd-layout-reset', { type: 'button', title: 'Reset the layout' }, [icon('fa-regular fa-arrow-rotate-left')]);
       reset.addEventListener('click', function () {
         st.left = st.doc = st.right = true; st.lw = LW.def; st.rw = RW.def;
+        st.leftManual = st.rightManual = st.docManual = false;
+        auto.left = auto.right = false;
         save(); paint();
         document.dispatchEvent(new CustomEvent('xd:layout-reset'));
       });
@@ -688,6 +713,7 @@
     handle('right', right, RW, function () { return st.rw; }, function (v) { st.rw = v; });
 
     paint();
+    autoFit();
     return { set: setPanel, get: function (k) { return st[k]; } };
   }
 
@@ -761,13 +787,24 @@
     host.appendChild(grip); host.appendChild(rail);
     host.classList.add('xd-has-rail');
 
+    function fit() {
+      // Never let the example take so much of the column that the form above it
+      // has nowhere to live.
+      var avail = host.getBoundingClientRect().height;
+      if (!avail) return;
+      if (!st.railSet) st.railh = Math.round(avail * 0.45);   // first visit: a fair share
+      var max = Math.max(RAILH.min, Math.min(RAILH.max, avail - 180));
+      if (st.railh > max) st.railh = max;
+      if (st.railh < RAILH.min) st.railh = RAILH.min;
+    }
     function applyH() {
+      fit();
       host.style.setProperty('--xd-railh', st.railh + 'px');
       host.classList.toggle('xd-rail-closed', !st.railOpen);
       fold.setAttribute('aria-expanded', String(st.railOpen));
     }
     var save = saveLayout;
-    document.addEventListener('xd:layout-reset', function () { st.railh = RAILH.def; st.railOpen = true; save(); applyH(); });
+    document.addEventListener('xd:layout-reset', function () { st.railSet = false; st.railOpen = true; save(); applyH(); });
 
     fold.addEventListener('click', function () { st.railOpen = !st.railOpen; save(); applyH(); });
 
@@ -777,18 +814,18 @@
       if (!dragging) return;
       var r = host.getBoundingClientRect();
       st.railh = Math.max(RAILH.min, Math.min(Math.min(RAILH.max, r.height - 160), r.bottom - e.clientY));
-      st.railOpen = true; save(); applyH();
+      st.railOpen = true; st.railSet = true; save(); applyH();
     });
     function stop(e) { if (!dragging) return; dragging = false; try { grip.releasePointerCapture(e.pointerId); } catch (x) {} document.body.classList.remove('xd-resizing-v'); }
     grip.addEventListener('pointerup', stop);
     grip.addEventListener('pointercancel', stop);
-    grip.addEventListener('dblclick', function () { st.railh = RAILH.def; st.railOpen = true; save(); applyH(); });
+    grip.addEventListener('dblclick', function () { st.railSet = false; st.railOpen = true; save(); applyH(); });
     grip.addEventListener('keydown', function (e) {
       var d = e.key === 'ArrowUp' ? 1 : e.key === 'ArrowDown' ? -1 : 0;
       if (!d) return;
       e.preventDefault();
       st.railh = Math.max(RAILH.min, Math.min(RAILH.max, st.railh + d * (e.shiftKey ? 40 : 10)));
-      save(); applyH();
+      st.railSet = true; save(); applyH();
     });
 
     function show(block) {
@@ -816,6 +853,7 @@
     }
 
     document.addEventListener('xd:resp', function (e) { show(e.detail.block); });
+    window.addEventListener('resize', applyH);
     var open = blocks.filter(function (b) { return !b.classList.contains('xd-hidden'); })[0] || blocks[0];
     show(open);
     applyH();

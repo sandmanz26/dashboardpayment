@@ -404,3 +404,81 @@ html.xd-rail-gone .xd-example-closed .api-response-data { display: inline-block 
 .xd-embed b { font-size: 13px; color: #18181b; }
 .xd-embed p { margin: 2px 0 6px; font-size: 13px; color: #71717a; }
 .xd-embed-link { font-size: 13px; color: #1a60e3; }
+
+/* =====================================================================
+   Tidy-up pass. Everything below settles the three columns at narrow
+   widths, where the first cut fell apart: the endpoint bar ate a third
+   of the viewport, the payload scrolled sideways out of view, and the
+   example pane crowded the form above it.
+   ===================================================================== */
+
+/* ----- endpoint bar: a bar, not a panel ----- */
+/* the vendor draws a 2px border plus a green drop-shadow on the method box;
+   the border was already off, the shadow was the stray green rule underneath */
+.xd-ep .api-header[class*="-method"] { box-shadow: none !important; }
+.api-section.api-path.xd-ep { gap: 6px 10px; padding: 10px 12px !important; }
+.api-section.api-path.xd-ep .api-header { gap: 10px; font-size: 14px; }
+.xd-ep .api-http-method { height: 20px; padding: 0 7px; font-size: 11px; }
+.xd-ep .api-url { font-size: 13.5px; }
+.api-section.api-path.xd-ep .description { font-size: 13px; line-height: 1.45; }
+.api-section.api-path.xd-ep .description p { margin: 0; }
+.xd-ep-tools .xd-copy { height: 26px; }
+/* the pills scroll sideways rather than wrapping onto a second and third row */
+.xd-jump { flex-wrap: nowrap; overflow-x: auto; margin-top: 2px; padding-top: 8px; scrollbar-width: none; }
+.xd-jump::-webkit-scrollbar { display: none; }
+.xd-pill { padding: 3px 9px; font-size: 12px; }
+/* stuck: drop to one line of context plus the pills */
+.api-section.api-path.xd-ep.xd-stuck { padding: 6px 12px 7px !important; }
+.xd-ep.xd-stuck .api-header { font-size: 13px; }
+.xd-ep.xd-stuck .api-url { font-size: 13px; }
+.xd-ep.xd-stuck .xd-jump { padding-top: 6px; }
+
+/* ----- the pinned example ----- */
+/* the right column carries 22.5px of padding; the pane ignores it and runs edge to edge */
+#right-panel.xd-has-rail { padding-right: 0 !important; }
+#right-panel.xd-has-rail .right-panel-scrollbar { padding-right: 22px; }
+.xd-rail { min-width: 0; overflow: hidden; }
+/* line number in its own column, so a wrapped line keeps its indent and nothing
+   ever scrolls sideways */
+.xd-rail-body { overflow-x: hidden; }
+.xd-ln { display: grid; grid-template-columns: 30px 1fr; gap: 0 10px; padding: 0 10px 0 0; white-space: normal; }
+.xd-ln-n { flex: none; }
+.xd-ln-t { white-space: pre-wrap; overflow-wrap: anywhere; }
+.xd-rail-code { font-size: 11.5px; line-height: 18px; }
+.xd-rail-head { gap: 6px; padding: 0 6px 0 10px; }
+
+/* ----- responses toolbar ----- */
+.api-header.xd-resp-head { row-gap: 8px; }
+.xd-tools { flex-wrap: wrap; row-gap: 6px; }
+.xd-filter-input { width: 180px; }
+.xd-ghost[aria-pressed="true"], .xd-ghost.on { background: #eef4ff; color: #1a60e3; }
+
+/* ----- field rows: one rhythm all the way down ----- */
+.api-schema-property { padding: 7px 8px 9px 10px; }
+.api-schema-property > .api-schema-title { row-gap: 2px; }
+.api-schema-property > .api-schema-title > .description { margin-top: 1px; }
+.api-schema-validation-container { margin-top: 5px; gap: 5px; }
+.api-schema-property .description { font-size: 13px; line-height: 1.5; }
+.api-schema-property .name { font-size: 13px; }
+.api-schema-property .data-type .data-type-name { font-size: 11.5px; }
+/* the vendor's tree (a rule down the object, a connector to each field) is kept,
+   but toned to one hairline colour so it guides rather than competes */
+.indent-level::before { background: #ededf0 !important; }
+.api-schema-property .name::after { background: #ededf0 !important; }
+.xd-obj-toggle { padding: 5px 8px; }
+.xd-obj-desc { font-size: 12.5px; }
+
+/* ----- narrow columns ----- */
+@media (max-width: 1200px) {
+  .xd-filter-input { width: 140px; }
+  .api-section.api-path.xd-ep .description { display: none; }
+}
+
+/* ----- last details ----- */
+/* the method chip must never break across lines */
+.xd-ep .api-http-method { white-space: nowrap; flex: 0 0 auto; }
+.api-section.api-path.xd-ep .api-header { flex-wrap: wrap; }
+/* the pill row scrolls, so fade its right edge rather than cut a word in half */
+.xd-jump { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 20px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 20px), transparent); }
+/* the example reads as a layer over the form, not as a cut through it */
+.xd-rail { box-shadow: 0 -8px 16px -12px rgba(15, 17, 23, .35); }

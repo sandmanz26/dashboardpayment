@@ -148,3 +148,54 @@ JSON as plain text with no highlighting.
 - The `channel_code` description embeds an iframe from `doc-widget.xendit.co`,
   which cannot load offline and rendered as a broken grey box. It is replaced
   with a labelled placeholder that links out.
+
+## Tidy-up pass
+
+The first cut was built and checked at 1600px. At the width people actually use
+it — a ~1000px window with the nav already hidden — it fell apart. What was
+wrong, and what fixed it:
+
+**Three columns did not fit.** At 1000px the article column was ~350px, which
+broke the `GET` chip across two lines and wrapped the path. No amount of spacing
+work fixes that; there simply is not room. The layout now stands a column down
+when the window cannot carry it: below 1180px the nav hides, below 820px the Try
+it column hides too, and both come back as the window grows. A column the reader
+switched themselves is theirs — autofit never touches it again until Reset.
+
+**The payload scrolled sideways out of view.** `white-space: pre` in a 326px
+column meant 195px of every line was unreachable. Each line is now a two-column
+grid — a fixed gutter for the number, the text in its own column wrapping with
+`overflow-wrap: anywhere` — so a long value folds under itself and keeps its
+indent. Horizontal overflow is zero at every width.
+
+**The example pane crowded the form above it.** A fixed 320px took two thirds of
+a short window. It now defaults to 45% of the column and is clamped to leave the
+form at least 180px, re-clamped on every window resize. Dragging the grip marks
+the height as the reader's choice and the automatic sizing stops.
+
+**The endpoint bar was 202px of sticky chrome** — a fifth of a short viewport,
+because the jump pills wrapped onto three rows. The pills now scroll sideways on
+one row with a faded edge, the type is a step smaller, and the description is
+dropped below 1200px. The bar is 134px at desktop widths, 90–110px once stuck.
+
+**A stray green rule under the path.** The vendor styles the method box with
+`border: 2px solid` *and* `box-shadow: 0 4px #86efac`. The border was already
+turned off; the shadow was not, and read as a rule across the bar.
+
+**Loose odds and ends:** the "Show sample inline" button floated on its own above
+the field list and is now a toggle beside Expand all / Collapse all; the right
+column's 22.5px padding made the example pane stop short of the edge; the
+vendor's tree rules are toned to one hairline; and the field rows run on one
+rhythm (name/type, description, constraints) at 13px rather than three sizes.
+
+Measured after the pass — endpoint bar height, example pane, form area, and
+horizontal overflow in the pane:
+
+| viewport | nav | article | Try it | bar | bar stuck | pane overflow |
+|---|---|---|---|---|---|---|
+| 1760×1000 | 300 | 1095 | 350 | 134 | 90 | 0 |
+| 1440×900 | 300 | 775 | 350 | 134 | 90 | 0 |
+| 1280×800 | 300 | 615 | 350 | 134 | 90 | 0 |
+| 1120×700 | — | 755 | 350 | 100 | — | 0 |
+| 1000×566 | — | 635 | 350 | 100 | — | 0 |
+| 760×700 | — | 700 | — | 100 | — | — |
