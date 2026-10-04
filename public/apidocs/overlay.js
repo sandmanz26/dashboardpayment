@@ -265,14 +265,13 @@
     var close = $('.smart-bar-close');
     if (close) close.addEventListener('click', function () { var b = close.closest('.info-bar'); if (b) b.parentNode.removeChild(b); });
   }
-  function wireCollapse() {
-    var btn = $('.expand-collapse-btn'); var panel = $('.left-container');
-    if (!btn || !panel) return;
-    var host = $('site-docs-left-panel-container');
+  function wireCollapse(panels) {
+    var btn = $('.expand-collapse-btn');
+    if (!btn || !panels) return;
     btn.addEventListener('click', function () {
-      var c = panel.classList.toggle('left-container-collapsed');
-      if (host) host.classList.toggle('xd-collapsed', c);
-      btn.setAttribute('aria-expanded', String(!c));
+      var open = !panels.get('left');
+      panels.set('left', open);
+      btn.setAttribute('aria-expanded', String(panels.get('left')));
     });
   }
   function wireFilter() {
@@ -552,6 +551,115 @@
     }
   }
 
-  function init() { buildHeader(); buildTree(); buildFollow(); buildResponseTabs(); buildTryIt(); wireBanner(); wireCollapse(); wireFilter(); labelResponseTabs(); buildEndpointBar(); buildSchemaTools(); document.documentElement.classList.add('xd-ready'); }
+  /* ---------- three-column layout: hide/show and resize ---------- */
+  var LAYOUT_KEY = 'xd.layout';
+  var LW = { min: 200, max: 560, def: 300 };
+  var RW = { min: 260, max: 720, def: 350 };
+
+  function readLayout() {
+    var d = { left: true, doc: true, right: true, lw: LW.def, rw: RW.def };
+    try {
+      var v = JSON.parse(localStorage.getItem(LAYOUT_KEY) || '{}');
+      if (v && typeof v === 'object') for (var k in d) if (v[k] !== undefined) d[k] = v[k];
+    } catch (e) { /* first visit, or storage blocked */ }
+    return d;
+  }
+  function clamp(v, r) { return Math.max(r.min, Math.min(r.max, v)); }
+
+  function buildPanels() {
+    var main = $('.documentation-main');
+    var left = $('site-docs-left-panel-container');
+    var right = $('site-docs-right-panel-container');
+    var doc = $('site-docs-content-panel-container') && $('.main-content');
+    if (!main || !left || !right || !doc) return;
+
+    var st = readLayout();
+    st.lw = clamp(st.lw, LW); st.rw = clamp(st.rw, RW);
+    main.classList.add('xd-panels');
+
+    var PANELS = [
+      { key: 'left', label: 'Nav', title: 'Navigation' },
+      { key: 'doc', label: 'Doc', title: 'Article' },
+      { key: 'right', label: 'Try it', title: 'Try it panel' },
+    ];
+
+    function save() { try { localStorage.setItem(LAYOUT_KEY, JSON.stringify(st)); } catch (e) { /* ignore */ } }
+    function paint() {
+      main.style.setProperty('--xd-lw', st.lw + 'px');
+      main.style.setProperty('--xd-rw', st.rw + 'px');
+      main.classList.toggle('xd-no-left', !st.left);
+      main.classList.toggle('xd-no-doc', !st.doc);
+      main.classList.toggle('xd-no-right', !st.right);
+      $$('.xd-panel-chip').forEach(function (c) {
+        var on = !!st[c.getAttribute('data-panel')];
+        c.setAttribute('aria-pressed', String(on));
+        c.classList.toggle('on', on);
+      });
+    }
+    function setPanel(key, on) {
+      // never hide the last visible column — there would be nothing left to read
+      if (!on && PANELS.filter(function (p) { return st[p.key]; }).length < 2) return;
+      st[key] = on; save(); paint();
+    }
+
+    /* chips live in the breadcrumb row, so they are reachable from anywhere on the page */
+    var crumbs = $('.breadcrumb-nav');
+    if (crumbs) {
+      var box = h('div', 'xd-layout', { role: 'group', 'aria-label': 'Panels' }, [h('span', 'xd-layout-lbl', null, ['Panels'])]);
+      PANELS.forEach(function (p) {
+        var chip = h('button', 'xd-panel-chip', { type: 'button', 'data-panel': p.key, title: 'Show or hide the ' + p.title, 'aria-pressed': 'true' }, [p.label]);
+        chip.addEventListener('click', function () { setPanel(p.key, !st[p.key]); });
+        box.appendChild(chip);
+      });
+      var reset = h('button', 'xd-layout-reset', { type: 'button', title: 'Reset the layout' }, [icon('fa-regular fa-arrow-rotate-left')]);
+      reset.addEventListener('click', function () { st = { left: true, doc: true, right: true, lw: LW.def, rw: RW.def }; save(); paint(); });
+      box.appendChild(reset);
+      crumbs.appendChild(box);
+    }
+
+    /* The chevron lives inside the nav column, so hiding the column would take the only
+       way back with it. Moved out to the container, it stays put and becomes the
+       "show nav" tab when the column is gone. */
+    var chev = $('.collapse-expand-left-btn');
+    if (chev) { chev.classList.add('xd-chev-btn'); main.appendChild(chev); }
+
+    /* drag handles on the two column borders */
+    function handle(side, host, range, read, write) {
+      var el = h('div', 'xd-rs xd-rs-' + side, {
+        role: 'separator', tabindex: '0', 'aria-orientation': 'vertical',
+        'aria-label': 'Resize the ' + (side === 'left' ? 'navigation' : 'Try it') + ' panel',
+      });
+      var dragging = false;
+      el.addEventListener('pointerdown', function (e) {
+        dragging = true; el.setPointerCapture(e.pointerId);
+        document.body.classList.add('xd-resizing'); e.preventDefault();
+      });
+      el.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        var r = main.getBoundingClientRect();
+        write(clamp(side === 'left' ? e.clientX - r.left : r.right - e.clientX, range));
+        save(); paint();
+      });
+      function stop(e) { if (!dragging) return; dragging = false; try { el.releasePointerCapture(e.pointerId); } catch (x) {} document.body.classList.remove('xd-resizing'); }
+      el.addEventListener('pointerup', stop);
+      el.addEventListener('pointercancel', stop);
+      el.addEventListener('keydown', function (e) {
+        var step = e.shiftKey ? 40 : 10, d = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        write(clamp(read() + d * step * (side === 'left' ? 1 : -1), range));
+        save(); paint();
+      });
+      el.addEventListener('dblclick', function () { write(range.def); save(); paint(); });
+      host.appendChild(el);
+    }
+    handle('left', left, LW, function () { return st.lw; }, function (v) { st.lw = v; });
+    handle('right', right, RW, function () { return st.rw; }, function (v) { st.rw = v; });
+
+    paint();
+    return { set: setPanel, get: function (k) { return st[k]; } };
+  }
+
+  function init() { buildHeader(); buildTree(); buildFollow(); buildResponseTabs(); buildTryIt(); wireBanner(); wireCollapse(buildPanels()); wireFilter(); labelResponseTabs(); buildEndpointBar(); buildSchemaTools(); document.documentElement.classList.add('xd-ready'); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

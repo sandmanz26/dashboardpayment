@@ -76,3 +76,32 @@ different product from the dashboard and is not on the console's colour tokens.
 - The filter matches descriptions as well as names, so searching `reference`
   also returns `payment_id`. The match is highlighted in the description to show
   why the row is there.
+
+## Panels: hide/show and resize
+
+The page is three columns — nav, article, Try it — fixed at 25% / fill / 350px
+in the capture. They are now adjustable:
+
+- **Switches.** A `Nav · Doc · Try it` group sits at the right of the breadcrumb
+  row, so it is reachable from any scroll position. Each toggles its column. The
+  last visible column cannot be hidden — there would be nothing left to read.
+- **Drag handles.** Both column borders are draggable (nav 200–560px, Try it
+  260–720px). The handle is invisible until you approach it, then shows a blue
+  rule. Double-click resets that column; with keyboard focus, arrow keys move it
+  10px (40px with Shift).
+- **Reset.** The ↺ button next to the switches restores all three columns and
+  both default widths.
+- **Persistence.** Widths and visibility are stored under `xd.layout` in
+  localStorage and restored on the next visit.
+
+Two implementation notes worth keeping:
+
+- The vendor's collapse chevron lived inside the nav column, so hiding that
+  column took the only way back with it. `buildPanels()` moves the chevron out to
+  `.documentation-main` and positions it at `left: var(--xd-lw)`; when the nav is
+  hidden it becomes a tab at the window edge.
+- The breadcrumb only shrink-wrapped its crumbs, so `margin-left: auto` on the
+  switches had nothing to push against. `d360-breadcrumb` is given `flex: 1`.
+
+Below 1024px the vendor has its own narrow-screen behaviour, so the handles and
+the chevron are hidden there and the original flex values are restored.

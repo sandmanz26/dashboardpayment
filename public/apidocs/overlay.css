@@ -267,3 +267,62 @@ site-docs-left-panel-container.xd-collapsed { flex: 0 0 44px !important; width: 
 
 /* native #anchor jumps land below the sticky header and endpoint bar, not under them */
 .api-section, .api-response-body, .api-schema-property { scroll-margin-top: 230px; }
+
+/* =====================================================================
+   Three-column layout: each column can be hidden, and the two borders
+   between them are drag handles. Widths live in --xd-lw / --xd-rw on
+   .documentation-main and are persisted in localStorage.
+   ===================================================================== */
+.documentation-main.xd-panels { position: relative; }
+.xd-panels > site-docs-left-panel-container { flex: 0 0 var(--xd-lw, 300px) !important; width: var(--xd-lw, 300px) !important; min-width: 0 !important; max-width: none !important; }
+.xd-panels site-docs-right-panel-container { flex: 0 0 var(--xd-rw, 350px) !important; width: var(--xd-rw, 350px) !important; min-width: 0 !important; }
+.xd-panels.xd-no-left > site-docs-left-panel-container,
+.xd-panels.xd-no-right site-docs-right-panel-container,
+.xd-panels.xd-no-doc .main-content { display: none !important; }
+
+/* drag handles sit on the column border and only show themselves on approach */
+.xd-rs { position: absolute; top: 0; bottom: 0; width: 11px; z-index: 40; cursor: col-resize; touch-action: none; }
+.xd-rs-left { right: -6px; }
+.xd-rs-right { left: -6px; }
+.xd-rs::after { content: ""; position: absolute; top: 0; bottom: 0; left: 5px; width: 1px; background: transparent; transition: background .12s ease; }
+.xd-rs:hover::after, .xd-rs:focus-visible::after, body.xd-resizing .xd-rs::after { background: #1a60e3; width: 2px; }
+.xd-rs:focus-visible { outline: none; }
+body.xd-resizing { cursor: col-resize; user-select: none; }
+.xd-no-left .xd-rs-left, .xd-no-right .xd-rs-right { display: none; }
+
+/* panel switches, in the breadcrumb row so they are reachable from any scroll position */
+.xd-layout { display: flex; align-items: center; gap: 3px; margin-left: auto; padding-right: 2px; }
+.xd-layout-lbl { margin-right: 5px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #a1a1aa; }
+.xd-panel-chip { height: 24px; padding: 0 10px; font-size: 12.5px; font-weight: 500; color: #71717a; background: #fff; border: 1px solid #e4e4e7; border-radius: 999px; cursor: pointer; }
+.xd-panel-chip:hover { border-color: #d4d4d8; color: #3f3f46; }
+.xd-panel-chip.on { background: #eef4ff; border-color: #cddcfb; color: #1a60e3; }
+.xd-layout-reset { height: 24px; width: 24px; margin-left: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; color: #a1a1aa; background: transparent; border: 0; border-radius: 6px; cursor: pointer; }
+.xd-layout-reset:hover { background: #f4f4f5; color: #3f3f46; }
+.breadcrumb-nav .nav-bar.secondary-nav-bar, .breadcrumb-nav { display: flex; align-items: center; }
+
+/* the article column carries the page when a neighbour is hidden */
+.xd-panels.xd-no-right .main-content, .xd-panels.xd-no-left .main-content { max-width: none; }
+
+/* the vendor stacks the columns on small screens, so dragging them is meaningless there */
+@media (max-width: 1023.98px) {
+  .xd-rs { display: none; }
+  .xd-panels > site-docs-left-panel-container { flex: 0 0 25% !important; width: auto !important; min-width: 250px !important; max-width: 460px !important; }
+  .xd-panels site-docs-right-panel-container { flex: 0 0 350px !important; width: auto !important; min-width: 250px !important; }
+  .xd-panels > .xd-chev-btn { display: none; }
+}
+
+/* the breadcrumb only shrink-wrapped its crumbs, so the switches had nothing to push against */
+.scroll-by-button-container > d360-breadcrumb { flex: 1 1 auto; min-width: 0; }
+.breadcrumb-nav { width: 100%; }
+.xd-layout { flex: 0 0 auto; white-space: nowrap; }
+.xd-panel-chip { white-space: nowrap; line-height: 22px; }
+
+/* The chevron moved out of the nav column (see overlay.js), so it survives hiding the
+   column and sits above the drag handle in the same stacking context. */
+.xd-panels > .xd-chev-btn { position: absolute; top: 40px; left: var(--xd-lw, 300px); transform: translateX(-12px); z-index: 45; }
+.xd-panels.xd-no-left > .xd-chev-btn { left: 0; transform: none; }
+.xd-panels.xd-no-left > .xd-chev-btn .expand-collapse-btn i { transform: rotate(180deg); }
+
+/* with the nav gone the chevron is the way back, so it needs to look like a control */
+.xd-panels.xd-no-left > .xd-chev-btn .expand-collapse-btn { background: #fff !important; border: 1px solid #e4e4e7 !important; border-left: 0 !important; border-radius: 0 8px 8px 0 !important; width: 22px; height: 40px; box-shadow: 0 1px 3px rgba(24,24,27,.08); }
+.xd-panels.xd-no-left > .xd-chev-btn .expand-collapse-btn:hover { background: #fafafa !important; }
